@@ -7,7 +7,6 @@ python:
 install:
   - pip install kaggle
   - pip install -r requirements.txt
-  - pip install -e .
 
 script:
   - cat Makefile
