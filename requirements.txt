@@ -1,1 +1,4 @@
 pytest
+tqdm
+torch
+torchvision
