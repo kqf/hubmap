@@ -1,4 +1,4 @@
-competition = data-science-bowl-2018
+competition = hubmap-kidney-segmentation
 
 data/:
 	mkdir -p $@
