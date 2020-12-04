@@ -1,5 +1,4 @@
 import click
-import cv2
 
 from multiprocessing import Pool
 from pathlib import Path
@@ -27,34 +26,6 @@ class RawDataset(Dataset):
         cell, mask = Image.open(cell_fn).convert('RGB'), Image.open(mask_fn)
         assert cell.size == mask.size
         return cell, mask
-
-
-class Dataset(Dataset):
-    def __init__(self, sample_dirs, transform=None):
-        super().__init__()
-        self.sample_dirs = sample_dirs
-        self.transform = transform
-
-    def __len__(self):
-        return len(self.sample_dirs)
-
-    def __getitem__(self, idx):
-        sample_dir = self.sample_dirs[idx]
-        cell_fn = (sample_dir / 'images' / sample_dir.name).with_suffix('.png')
-        mask_fn = sample_dir / 'mask.png'
-
-        # Read an image with OpenCV
-        image = cv2.imread(str(cell_fn))
-        mask = cv2.imread(str(mask_fn), cv2.IMREAD_GRAYSCALE)
-
-        # By default OpenCV uses BGR color space for color images,
-        # so we need to convert the image to RGB color space.
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        if self.transform is not None:
-            augmented = self.transform(image=image, mask=mask)
-            image = augmented['image']
-            mask = augmented["mask"]
-        return image, (mask == 255).float()
 
 
 def combine_masks(mask_root_dir):
