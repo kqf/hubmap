@@ -11,17 +11,17 @@ from torch.utils.data import Dataset
 class RawDataset(Dataset):
     """Constructs dataset"""
 
-    def __init__(self, sample_dirs):
+    def __init__(self, samples):
         super().__init__()
-        self.sample_dirs = sample_dirs
+        self.samples = samples
 
     def __len__(self):
-        return len(self.sample_dirs)
+        return len(self.samples)
 
     def __getitem__(self, idx):
-        sample_dir = self.sample_dirs[idx]
-        cell_fn = (sample_dir / 'images' / sample_dir.name).with_suffix('.png')
-        mask_fn = sample_dir / 'mask.png'
+        sample = self.samples[idx]
+        cell_fn = sample / 'full.tiff'
+        mask_fn = sample / 'mask.png'
 
         cell, mask = Image.open(cell_fn).convert('RGB'), Image.open(mask_fn)
         assert cell.size == mask.size
