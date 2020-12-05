@@ -3,6 +3,10 @@
 .python-version
 *sftp-config*
 
+# Package
+.eggs
+*.egg-info
+
 # Data
 data/
 *.tiff
