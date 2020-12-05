@@ -1,6 +1,7 @@
 # Python
 *.pyc
 .python-version
+*sftp-config*
 
 # Data
 data/
