@@ -6,7 +6,6 @@ from pathlib import Path
 from click import Path as cpath
 
 from tqdm import tqdm
-from PIL import Image
 from torch.utils.data import Dataset
 
 from models.encoding import rl_decode
@@ -26,10 +25,7 @@ class RawDataset(Dataset):
         sample = self.samples[idx]
         sample_fn = sample
         mask_fn = sample.with_name(sample.stem + '-mask.png')
-
-        cell, mask = tiff_read(sample_fn), Image.open(mask_fn)
-        assert cell.size == mask.size
-        return cell, mask
+        return tiff_read(sample_fn), tiff_read(mask_fn)
 
 
 def tiff_read(filename):
@@ -48,13 +44,19 @@ def main(codes, opath):
     print(df.head())
     for _, (sample, encoding) in tqdm(df.iterrows(), total=len(df)):
         path = Path(opath) / sample
+
+        # Read if possible
         try:
             image = tiff_read(path.with_suffix('.tiff'))
         except FileNotFoundError:
             print(f"Ignoring sample {sample}")
             continue
+
+        # Decode
         mask = rl_decode(encoding, image.shape[:2])
-        Image.fromarray(mask).save(path.with_name(sample + "-mask.png"))
+
+        # Write the file
+        tifffile.imwrite(path.with_name(sample + "-mask.png"), mask)
 
 
 if __name__ == '__main__':

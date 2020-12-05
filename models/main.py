@@ -10,7 +10,6 @@ from data import RawDataset
 @click.option("--testp", type=cpath(exists=True), default="data/test")
 def main(trainp, testp):
     train = RawDataset(list(Path(trainp).glob("*.tiff")))
-    print(train)
     for x in train:
         print(x)
 
