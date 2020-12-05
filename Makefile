@@ -1,5 +1,13 @@
 competition = hubmap-kidney-segmentation
 
+
+train: %-mask.png
+
+
+%-mask.png: data/
+	python models/data.py
+
+
 data/:
 	mkdir -p $@
 	kaggle competitions download -c $(competition) -p data
