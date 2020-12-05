@@ -62,14 +62,14 @@ def main(codes, opath):
     df = pd.read_csv(codes)
     print(df.head())
     for _, (sample, encoding) in tqdm(df.iterrows(), total=len(df)):
-        sample_path = Path(opath) / sample
+        path = Path(opath) / sample
         try:
-            image = tiff_read(sample_path.with_suffix('.tiff'))
+            image = tiff_read(path.with_suffix('.tiff'))
         except FileNotFoundError:
             print(f"Ignoring sample {sample}")
             continue
         mask = rl_decode(encoding, image.shape[:2])
-        Image.fromarray(mask).save(sample_path.with_name(sample + "-mask.png"))
+        Image.fromarray(mask).save(path.with_name(sample + "-mask.png"))
 
 
 if __name__ == '__main__':
