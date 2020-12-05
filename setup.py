@@ -6,8 +6,8 @@ setup(
     packages=find_packages(),
     entry_points={
         'console_scripts': [
-            'prepare-crops=model.data:main',
-            'train=model.main:main',
+            'prepare-crops=models.data:main',
+            'train=models.main:main',
         ],
     },
 )
