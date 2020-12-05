@@ -1,11 +1,16 @@
 import click
+import pandas as pd
+import tifffile
 
 from multiprocessing import Pool
 from pathlib import Path
+from click import Path as cpath
 
 from tqdm import tqdm
 from PIL import Image
 from torch.utils.data import Dataset
+
+from models.encoding import rl_decode
 
 
 class RawDataset(Dataset):
@@ -42,14 +47,29 @@ def combine_masks(mask_root_dir):
     img.save(mask_output)
 
 
+def tiff_read(filename):
+    image = tifffile.imread(filename)
+    if len(image.shape) == 5:
+        image = image.squeeze().transpose(1, 2, 0)
+    return image
+
+
 @click.command()
-@click.option("--path", type=click.Path(exists=True), default="data/train")
-def main(path):
+@click.option("--codes", type=cpath(exists=True), default="data/train.csv")
+@click.option("--opath", type=cpath(exists=True), default="data/train")
+def main(codes, opath):
     # Combine masks into one
-    samples_dirs = list(d for d in Path(path).iterdir() if d.is_dir())
-    with Pool() as pool, tqdm(total=len(samples_dirs)) as pbar:
-        for _ in tqdm(pool.imap_unordered(combine_masks, samples_dirs)):
-            pbar.update()
+    df = pd.read_csv(codes)
+    print(df.head())
+    for _, (sample, encoding) in tqdm(df.iterrows(), total=len(df)):
+        sample_path = Path(opath) / sample
+        try:
+            image = tiff_read(sample_path.with_suffix('.tiff'))
+        except FileNotFoundError:
+            print(f"Ignoring sample {sample}")
+            continue
+        mask = rl_decode(encoding, image.shape[:2])
+        Image.fromarray(mask).save(sample_path.with_name(sample + "-mask.png"))
 
 
 if __name__ == '__main__':

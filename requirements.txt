@@ -2,3 +2,6 @@ pytest
 tqdm
 torch
 torchvision
+click
+pandas
+tifffile
