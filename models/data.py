@@ -2,7 +2,6 @@ import click
 import pandas as pd
 import tifffile
 
-from multiprocessing import Pool
 from pathlib import Path
 from click import Path as cpath
 
@@ -25,26 +24,12 @@ class RawDataset(Dataset):
 
     def __getitem__(self, idx):
         sample = self.samples[idx]
-        cell_fn = sample / 'full.tiff'
-        mask_fn = sample / 'mask.png'
+        sample_fn = sample
+        mask_fn = sample.with_name(sample.stem + '-mask.png')
 
-        cell, mask = Image.open(cell_fn).convert('RGB'), Image.open(mask_fn)
+        cell, mask = tiff_read(sample_fn), Image.open(mask_fn)
         assert cell.size == mask.size
         return cell, mask
-
-
-def combine_masks(mask_root_dir):
-    mask_output = mask_root_dir / 'mask.png'
-    if mask_output.exists():
-        return
-
-    mask_fn_iter = mask_root_dir.glob('masks/*.png')
-    img = Image.open(next(mask_fn_iter))
-    for fn in mask_fn_iter:
-        mask = Image.open(fn)
-        img.paste(mask, (0, 0), mask)
-
-    img.save(mask_output)
 
 
 def tiff_read(filename):
