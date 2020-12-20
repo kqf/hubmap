@@ -1,6 +1,7 @@
 import click
-import pandas as pd
 import tifffile
+import numpy as np
+import pandas as pd
 
 from pathlib import Path
 from click import Path as cpath
@@ -33,6 +34,22 @@ def tiff_read(filename):
     if len(image.shape) == 5:
         image = image.squeeze().transpose(1, 2, 0)
     return image
+
+
+def pad(img, sz=256, reduction=4):
+    # add padding to make the image dividable into tiles
+    w, h = img.shape[:2]
+
+    padw = (reduction * sz - w % (reduction * sz)) % (reduction * sz)
+    padh = (reduction * sz - h % (reduction * sz)) % (reduction * sz)
+
+    padding = [[padw // 2, padw - padw // 2], [padh // 2, padh - padh // 2]]
+
+    # Add zero padding for the remaining dimensions
+    for _ in img.shape[2:]:
+        padding.append([0, 0])
+
+    return np.pad(img, padding, constant_values=0)
 
 
 @click.command()
