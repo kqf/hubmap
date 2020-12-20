@@ -80,9 +80,9 @@ def is_saturated(img, s_th=40, sz=256):
 
 
 def write_image(img, tilepath):
-    im = cv2.imencode('.png', img)[1]
+    _, png = cv2.imencode('.png', img)
     tilepath.parent.mkdir(parents=True, exist_ok=True)
-    cv2.imwrite(str(tilepath), im)
+    cv2.imwrite(str(tilepath), png)
 
 
 @click.command()
