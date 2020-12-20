@@ -72,6 +72,19 @@ def tile(img, sz=256, reduction=4, interp=cv2.INTER_AREA):
     return np.squeeze(img)
 
 
+def is_saturated(img, s_th=40, sz=256):
+    p_th = 200 * sz // 256
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    h, s, v = cv2.split(hsv)
+    return (s > s_th).sum() <= p_th or img.sum() <= p_th
+
+
+def write_image(img, tilepath):
+    im = cv2.imencode('.png', img)[1]
+    tilepath.parent.mkdir(parents=True, exist_ok=True)
+    cv2.imwrite(str(tilepath), im)
+
+
 @click.command()
 @click.option("--codes", type=cpath(exists=True), default="data/train.csv")
 @click.option("--opath", type=cpath(exists=True), default="data/train")
@@ -97,10 +110,12 @@ def main(codes, opath):
         masks = tile(mask, interp=cv2.INTER_NEAREST)
 
         for i, (tsample, tmask) in enumerate(zip(samples, masks)):
-            pass
+            if is_saturated(tsample):
+                continue
 
-        # Write the file
-        tifffile.imwrite(path.with_name(sample + "-mask.png"), mask)
+            bgr = cv2.cvtColor(tsample, cv2.COLOR_RGB2BGR)
+            write_image(bgr, tilepath=path / "tiles" / f"{i}.png")
+            write_image(tmask, tilepath=path / "masks" / f"{i}.png")
 
 
 if __name__ == '__main__':
