@@ -2,6 +2,7 @@
 *.pyc
 .python-version
 *sftp-config*
+.idea
 
 # Package
 .eggs
