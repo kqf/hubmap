@@ -1,3 +1,4 @@
+import cv2
 import click
 import tifffile
 import numpy as np
@@ -52,6 +53,25 @@ def pad(img, sz=256, reduction=4):
     return np.pad(img, padding, constant_values=0)
 
 
+def resize(img, sz=256, reduction=4, interp=cv2.INTER_AREA):
+    reduced_shape = (img.shape[1] // reduction, img.shape[0] // reduction)
+    return cv2.resize(img, reduced_shape, interpolation=interp)
+
+
+def tile(img, sz=256, reduction=4, interp=cv2.INTER_AREA):
+    img = pad(img, sz=sz, reduction=4)
+    img = resize(img, sz=sz, reduction=reduction, interp=interp)
+
+    nch = 3 if len(img.shape) == 3 else 1
+
+    # [h, w, c] -> [h / sz, sz, w / sz, sz, c)
+    img = img.reshape(img.shape[0] // sz, sz, img.shape[1] // sz, sz, nch)
+
+    # [h / sz, sz, w / sz, sz, c).T -> [h / sz, w / sz, sz, sz, c)
+    img = img.transpose(0, 2, 1, 3, 4).reshape(-1, sz, sz, nch)
+    return np.squeeze(img)
+
+
 @click.command()
 @click.option("--codes", type=cpath(exists=True), default="data/train.csv")
 @click.option("--opath", type=cpath(exists=True), default="data/train")
@@ -64,13 +84,20 @@ def main(codes, opath):
 
         # Read if possible
         try:
+            # Read -> [h, w, c]
             image = tiff_read(path.with_suffix('.tiff'))
         except FileNotFoundError:
             print(f"Ignoring sample {sample}")
             continue
 
-        # Decode
-        mask = rl_decode(encoding, image.shape[:2])
+        # Decode -> [h, w]
+        mask = rl_decode(encoding, image.shape[:2]).T
+
+        samples = tile(image, interp=cv2.INTER_AREA)
+        masks = tile(mask, interp=cv2.INTER_NEAREST)
+
+        for i, (tsample, tmask) in enumerate(zip(samples, masks)):
+            pass
 
         # Write the file
         tifffile.imwrite(path.with_name(sample + "-mask.png"), mask)

@@ -5,3 +5,4 @@ torchvision
 click
 pandas
 tifffile
+opencv-python
