@@ -62,9 +62,21 @@ def is_saturated(img, s_th=40, sz=256):
 
 
 def write(img, tilepath):
-    # _, png = cv2.imencode('.png', img)
+    # _, png = cv2.imencode(".png", img)
     tilepath.parent.mkdir(parents=True, exist_ok=True)
     cv2.imwrite(str(tilepath), img)
+
+
+def dump_averages(x, x2, fout):
+    # image stats
+    mean = np.stack(x).mean(0)
+    std = np.sqrt(np.stack(x2).mean(0) - mean**2)
+
+    # dump the stats
+    df = pd.DataFrame({"mean", mean, ", std", std})
+
+    print(df.T)
+    df.to_csv(fout.with_suffix(".csv"), index=False)
 
 
 @click.command()
@@ -75,13 +87,15 @@ def main(codes, fin, fout):
     # Combine masks into one
     df = pd.read_csv(codes)
     print(df.head())
+
+    x, x2 = [], []
     for _, (sample, encoding) in tqdm(df.iterrows(), total=len(df)):
         path = Path(fin) / sample
 
         # Read if possible
         try:
             # Read -> [h, w, c]
-            image = tiff_read(path.with_suffix('.tiff'))
+            image = tiff_read(path.with_suffix(".tiff"))
         except FileNotFoundError:
             print(f"Ignoring sample {sample}")
             continue
@@ -96,10 +110,18 @@ def main(codes, fin, fout):
         for i, (tsample, tmask) in enumerate(zip(samples, masks)):
             if is_saturated(tsample):
                 continue
+
+            # Normalization
+            img = tsample / 255.0
+            x.append(img.reshape(-1, 3).mean(0))
+            x2.append((img ** 2).reshape(-1, 3).mean(0))
+
             bgr = cv2.cvtColor(tsample, cv2.COLOR_RGB2BGR)
             write(bgr, tilepath=out_folder / f"{i}" / "tile.png")
             write(tmask, tilepath=out_folder / f"{i}" / "mask.png")
 
+        dump_averages(x, x2, fout)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
