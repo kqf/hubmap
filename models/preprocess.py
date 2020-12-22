@@ -8,26 +8,8 @@ from pathlib import Path
 from click import Path as cpath
 
 from tqdm import tqdm
-from torch.utils.data import Dataset
 
 from models.encoding import rl_decode
-
-
-class RawDataset(Dataset):
-    """Constructs dataset"""
-
-    def __init__(self, samples):
-        super().__init__()
-        self.samples = samples
-
-    def __len__(self):
-        return len(self.samples)
-
-    def __getitem__(self, idx):
-        sample = self.samples[idx]
-        sample_fn = sample
-        mask_fn = sample.with_name(sample.stem + '-mask.png')
-        return tiff_read(sample_fn), tiff_read(mask_fn)
 
 
 def tiff_read(filename):
