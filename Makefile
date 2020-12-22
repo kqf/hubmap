@@ -1,12 +1,12 @@
 competition = hubmap-kidney-segmentation
 
 
-train: data/train/*/*/mask.png
-	python models/main.py
+train: data/train/preprocessed
+	python models/main.py --fin $^
 
 
-data/train/*/*/mask.png: data/
-	python models/preprocess.py
+data/train/preprocessed/: data/train
+	python models/preprocess.py --fin $^ --fout  $@
 
 
 data/:
@@ -31,4 +31,4 @@ tolocal:
 	scp $(instance):~/hubmap/data/test/b2dc8411c-anatomical-structure.json data/test
 
 
-.PHONY: dataset
+.PHONY: tolocal
