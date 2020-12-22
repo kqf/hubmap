@@ -62,20 +62,21 @@ def is_saturated(img, s_th=40, sz=256):
 
 
 def write(img, tilepath):
-    _, png = cv2.imencode('.png', img)
+    # _, png = cv2.imencode('.png', img)
     tilepath.parent.mkdir(parents=True, exist_ok=True)
-    cv2.imwrite(str(tilepath), png)
+    cv2.imwrite(str(tilepath), img)
 
 
 @click.command()
 @click.option("--codes", type=cpath(exists=True), default="data/train.csv")
-@click.option("--opath", type=cpath(exists=True), default="data/train")
-def main(codes, opath):
+@click.option("--fin", type=cpath(exists=True))
+@click.option("--fout", type=cpath(exists=False))
+def main(codes, fin, fout):
     # Combine masks into one
     df = pd.read_csv(codes)
     print(df.head())
     for _, (sample, encoding) in tqdm(df.iterrows(), total=len(df)):
-        path = Path(opath) / sample
+        path = Path(fin) / sample
 
         # Read if possible
         try:
@@ -91,13 +92,13 @@ def main(codes, opath):
         samples = tile(image, interp=cv2.INTER_AREA)
         masks = tile(mask, interp=cv2.INTER_NEAREST)
 
+        out_folder = Path(fout) / sample
         for i, (tsample, tmask) in enumerate(zip(samples, masks)):
             if is_saturated(tsample):
                 continue
-
             bgr = cv2.cvtColor(tsample, cv2.COLOR_RGB2BGR)
-            write(bgr, tilepath=path / f"{i}" / "tile.png")
-            write(tmask, tilepath=path / f"{i}" / "mask.png")
+            write(bgr, tilepath=out_folder / f"{i}" / "tile.png")
+            write(tmask, tilepath=out_folder / f"{i}" / "mask.png")
 
 
 if __name__ == '__main__':

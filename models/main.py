@@ -6,10 +6,9 @@ from models.dataset import RawDataset
 
 
 @click.command()
-@click.option("--trainp", type=cpath(exists=True), default="data/train")
-@click.option("--testp", type=cpath(exists=True), default="data/test")
-def main(trainp, testp):
-    train_folders = list(Path(trainp).glob("**/*/*/"))
+@click.option("--fin", type=cpath(exists=True))
+def main(fin):
+    train_folders = list(Path(fin).glob("**/*/*/"))
     train = RawDataset(train_folders)
 
     tile, mask = train[0]
