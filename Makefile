@@ -1,11 +1,12 @@
 competition = hubmap-kidney-segmentation
 
 
-train: %-mask.png
+train: data/train/*/*/mask.png
+	python models/main.py
 
 
-%-mask.png: data/
-	python models/data.py
+data/train/*/*/mask.png: data/
+	python models/preprocess.py
 
 
 data/:

@@ -8,26 +8,8 @@ from pathlib import Path
 from click import Path as cpath
 
 from tqdm import tqdm
-from torch.utils.data import Dataset
 
 from models.encoding import rl_decode
-
-
-class RawDataset(Dataset):
-    """Constructs dataset"""
-
-    def __init__(self, samples):
-        super().__init__()
-        self.samples = samples
-
-    def __len__(self):
-        return len(self.samples)
-
-    def __getitem__(self, idx):
-        sample = self.samples[idx]
-        sample_fn = sample
-        mask_fn = sample.with_name(sample.stem + '-mask.png')
-        return tiff_read(sample_fn), tiff_read(mask_fn)
 
 
 def tiff_read(filename):
@@ -79,7 +61,7 @@ def is_saturated(img, s_th=40, sz=256):
     return (s > s_th).sum() <= p_th or img.sum() <= p_th
 
 
-def write_image(img, tilepath):
+def write(img, tilepath):
     _, png = cv2.imencode('.png', img)
     tilepath.parent.mkdir(parents=True, exist_ok=True)
     cv2.imwrite(str(tilepath), png)
@@ -114,8 +96,8 @@ def main(codes, opath):
                 continue
 
             bgr = cv2.cvtColor(tsample, cv2.COLOR_RGB2BGR)
-            write_image(bgr, tilepath=path / "tiles" / f"{i}.png")
-            write_image(tmask, tilepath=path / "masks" / f"{i}.png")
+            write(bgr, tilepath=path / f"{i}" / "tile.png")
+            write(tmask, tilepath=path / f"{i}" / "mask.png")
 
 
 if __name__ == '__main__':
