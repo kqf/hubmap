@@ -5,7 +5,7 @@ train: %-mask.png
 
 
 %-mask.png: data/
-	python models/data.py
+	python models/preprocess.py
 
 
 data/:
