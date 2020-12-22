@@ -73,10 +73,10 @@ def dump_averages(x, x2, fout):
     std = np.sqrt(np.stack(x2).mean(0) - mean**2)
 
     # dump the stats
-    df = pd.DataFrame({"mean", mean, ", std", std})
+    df = pd.DataFrame({"mean": mean, "std": std})
 
     print(df.T)
-    df.to_csv(fout.with_suffix(".csv"), index=False)
+    df.to_csv(Path(fout).with_suffix(".csv"), index=False)
 
 
 @click.command()
