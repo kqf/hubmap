@@ -2,11 +2,11 @@ competition = hubmap-kidney-segmentation
 
 
 train: data/train/preprocessed
-	python models/main.py
+	python models/main.py --fin $^
 
 
-data/train/preprocessed/: data/
-	python models/preprocess.py
+data/train/preprocessed/: data/train
+	python models/preprocess.py --fin $^ --fout  $@
 
 
 data/:
