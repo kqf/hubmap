@@ -6,3 +6,4 @@ click
 pandas
 tifffile
 opencv-python
+albumentations
