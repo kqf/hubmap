@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 
 
-from models.data import pad
+from models.preprocess import pad
 
 
 @pytest.fixture
