@@ -7,3 +7,4 @@ pandas
 tifffile
 opencv-python
 albumentations
+pytest-cov

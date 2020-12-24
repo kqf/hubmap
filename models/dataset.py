@@ -2,11 +2,18 @@ import cv2
 from torch.utils.data import Dataset
 
 
+def channel_first(**kwargs):
+    output = {}
+    for k, v in kwargs.items():
+        output[k] = v.transpose(2, 0, 1) if v.ndim == 3 else v
+    return output
+
+
 class RawDataset(Dataset):
-    def __init__(self, samples, transform=None):
+    def __init__(self, samples, transform=channel_first):
         super().__init__()
         self.samples = samples
-        self.transform = transform
+        self.transform = transform or channel_first
 
     def __len__(self):
         return len(self.samples)
@@ -19,8 +26,9 @@ class RawDataset(Dataset):
         # By default OpenCV uses BGR color space for color images,
         # so we need to convert the image to RGB color space.
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        if self.transform is not None:
-            augmented = self.transform(image=image, mask=mask)
-            image = augmented['image']
-            mask = augmented["mask"]
+
+        augmented = self.transform(image=image, mask=mask)
+        image = augmented['image']
+        mask = augmented["mask"]
+
         return image, mask
