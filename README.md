@@ -1,4 +1,4 @@
-# HuBMAP [![Build Status](https://travis-ci.com/kqf/hubmap.svg?branch=master)](https://travis-ci.com/kqf/hubmap)
+# HuBMAP ![tests](https://github.com/kqf/hubmap/workflows/tests/badge.svg)
 
 ## Download
 To download the dataset do:
