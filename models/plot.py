@@ -11,14 +11,14 @@ def tensor2img(t, padding=16):
     return img.crop((padding, padding, w - padding, h - padding))
 
 
-def plot(*cells):
-    fig, axes = plt.subplots(len(cells), len(cells[0]), figsize=(12, 5))
+def plot(*imgs):
+    fig, axes = plt.subplots(len(imgs), len(imgs[0]), figsize=(12, 5))
 
     # If there is a single row in the data
-    if len(cells) == 1:
+    if len(imgs) == 1:
         axes = [axes]
 
-    for row, raxes in zip(cells, axes):
+    for row, raxes in zip(imgs, axes):
         for i, (image, ax) in enumerate(zip(row, raxes)):
             ax.grid(False)
             ax.set_xticks([])
