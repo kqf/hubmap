@@ -30,3 +30,14 @@ def plot(*imgs):
                 ax.imshow(tensor2img(image))
     plt.show()
     return axes
+
+
+def glance(dataset, batch_size):
+    batch = []
+    for pair in dataset:
+        if len(batch) < batch_size:
+            batch.append(pair)
+            continue
+
+        plot(*zip(*batch))
+        batch = []
