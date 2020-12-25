@@ -1,11 +1,12 @@
 import cv2
+import torch
 from torch.utils.data import Dataset
 
 
 def channel_first(**kwargs):
     output = {}
     for k, v in kwargs.items():
-        output[k] = v.transpose(2, 0, 1) if v.ndim == 3 else v
+        output[k] = torch.tensor(v.transpose(2, 0, 1) if v.ndim == 3 else v)
     return output
 
 
