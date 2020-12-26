@@ -33,4 +33,4 @@ class RawDataset(Dataset):
         mask = augmented["mask"]
 
         # Remove the artifacts from masks
-        return image, (mask == 255).float()
+        return image, mask

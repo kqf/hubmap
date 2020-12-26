@@ -101,7 +101,8 @@ def main(codes, fin, fout):
             continue
 
         # Decode -> [h, w]
-        mask = rl_decode(encoding, image.shape[:2]).T
+        shape = image.shape[:2]
+        mask = rl_decode(encoding, shape[::-1])
 
         samples = tile(image, interp=cv2.INTER_AREA)
         masks = tile(mask, interp=cv2.INTER_NEAREST)
