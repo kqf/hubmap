@@ -4,7 +4,7 @@ from click import Path as cpath
 from pathlib import Path
 from models.dataset import RawDataset
 from models.augmentations import transform
-from models.plot import glance
+from models.plot import glance, compare
 
 
 @click.command()

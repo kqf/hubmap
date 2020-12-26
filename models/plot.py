@@ -1,6 +1,7 @@
 import torch
 import matplotlib.pyplot as plt
 from torchvision.transforms.functional import to_pil_image
+from torchvision.utils import make_grid
 
 
 def tensor2img(t, padding=16):
@@ -32,12 +33,26 @@ def plot(*imgs):
     return axes
 
 
-def glance(dataset, batch_size):
+def batches(dataset, batch_size):
     batch = []
     for pair in dataset:
         if len(batch) < batch_size:
             batch.append(pair)
             continue
-
-        plot(*zip(*batch))
+        yield list(zip(*batch))
         batch = []
+
+
+def compare(images, masks):
+    igrid = make_grid(torch.stack(images)).permute(1, 2, 0)
+    mgrid = make_grid(torch.stack(masks))
+    # import ipdb; ipdb.set_trace(); import IPython; IPython.embed() # noqa
+
+    plt.imshow(igrid)
+    plt.show()
+    plt.imshow(mgrid.reshape(mgrid.shape[0], -1), alpha=0.5)
+
+
+def glance(dataset, batch_size, pfunc=compare):
+    for batch in batches(dataset, batch_size):
+        pfunc(*batch)
