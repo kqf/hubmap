@@ -35,7 +35,7 @@ def rl_decode(code, shape):
     return img.reshape(shape).T
 
 
-def rle_encode_less_memory(img):
+def rle_encode(img):
     """
     img: numpy array, 1 - mask, 0 - background
     Returns run length as string formated
