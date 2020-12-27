@@ -8,3 +8,4 @@ tifffile
 opencv-python
 albumentations
 pytest-cov
+rasterio
