@@ -74,19 +74,52 @@ class InferenceDataset(torch.utils.data.Dataset):
         return (s > s_th).sum() <= p_th or img.sum() <= p_th
 
 
+class InferenceModel:
+    def __init__(self, models, dl, reduction):
+        self.models = models
+        self.dl = dl
+        self.reduction = reduction
+
+    def __call__(self, x, y):
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        if ((y >= 0).sum() > 0):  # exclude empty images
+            x = x[y >= 0].to(device)
+            y = y[y >= 0]
+            py = None
+            for model in self.models:
+                p = model(x)
+                p = torch.sigmoid(p).detach()
+                if py is None:
+                    py = p
+                else:
+                    py += p
+
+            py /= len(self.models)
+            py = torch.nn.functional.upsample(
+                py, scale_factor=self.reduction, mode="bilinear")
+            py = py.permute(0, 2, 3, 1).float().cpu()
+
+            batch_size = len(y)
+            for i in range(batch_size):
+                yield py[i], y[i]
+
+
 def predict_masks(df, models, TH, bs):
     preds, names = [], []
     for idx, (sample, _) in tqdm(df.iterrows(), total=len(df)):
         ds = InferenceDataset(sample)
 
         # rasterio cannot be used with multiple workers
-        dl = DataLoader(ds, bs, num_workers=0, shuffle=False, pin_memory=True)
-        mp = Model_pred(models, dl)
+        dl = torch.utils.data.DataLoader(
+            ds, bs, num_workers=0, shuffle=False, pin_memory=True)
+
+        mp = InferenceModel(models, dl)
 
         # generate masks
         mask = torch.zeros(len(ds), ds.sz, ds.sz, dtype=torch.int8)
-        for p, i in iter(mp):
-            mask[i.item()] = p.squeeze(-1) > TH
+        for x, y in iter(dl):
+            for p, i in mp(x, y):
+                mask[i.item()] = p.squeeze(-1) > TH
 
         # reshape tiled masks into a single mask and crop padding
         mask = mask.view(ds.n0max, ds.n1max, ds.sz, ds.sz).\
