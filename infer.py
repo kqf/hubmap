@@ -14,6 +14,24 @@ def img2tensor(img, dtype: np.dtype = np.float32):
     return torch.from_numpy(img.astype(dtype, copy=False))
 
 
+def rle_encode(img):
+    """
+    img: numpy array, 1 - mask, 0 - background
+    Returns run length as string formated
+    This simplified method requires first and last pixel to be zero
+    source: https://www.kaggle.com/bguberfain/memory-aware-rle-encoding
+    """
+    pixels = img.T.flatten()
+
+    # This simplified method requires first and last pixel to be zero
+    pixels[0] = 0
+    pixels[-1] = 0
+    runs = np.where(pixels[1:] != pixels[:-1])[0] + 2
+    runs[1::2] -= runs[::2]
+
+    return ' '.join(str(x) for x in runs)
+
+
 class InferenceDataset(torch.utils.data.Dataset):
     identity = rio.Affine(1, 0, 0, 0, 1, 0)
 
@@ -128,11 +146,8 @@ def predict_masks(df, models, TH, bs):
         mask = mask[ds.pad0 // 2:-(ds.pad0 - ds.pad0 // 2) if ds.pad0 > 0 else ds.n0max * ds.sz,
                     ds.pad1 // 2:-(ds.pad1 - ds.pad1 // 2) if ds.pad1 > 0 else ds.n1max * ds.sz]
 
-        # convert to rle
-        # https://www.kaggle.com/bguberfain/memory-aware-rle-encoding
-        rle = rle_encode_less_memory(mask.numpy())
         names.append(sample)
-        preds.append(rle)
+        preds.append(rle_encode(mask.numpy()))
         del mask, ds, dl
         gc.collect()
     return names, preds
