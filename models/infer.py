@@ -4,7 +4,9 @@ import torch
 import numpy as np
 import pandas as pd
 import rasterio as rio
+
 from tqdm import tqdm
+from pathlib import Path
 
 
 def img2tensor(img, dtype: np.dtype = np.float32):
@@ -32,12 +34,17 @@ def rle_encode(img):
     return ' '.join(str(x) for x in runs)
 
 
+def nonpad(img, pad0, n0max, pad1, n1max, sz):
+    return img[pad0 // 2:-(pad0 - pad0 // 2) if pad0 > 0 else n0max * sz,
+               pad1 // 2:-(pad1 - pad1 // 2) if pad1 > 0 else n1max * sz]
+
+
 class InferenceDataset(torch.utils.data.Dataset):
     identity = rio.Affine(1, 0, 0, 0, 1, 0)
 
     def __init__(self, filename, sz, reduction):
         self.data = rio.open(
-            filename.with_suffix('.tiff'),
+            filename,
             transform=self.identity,
             num_threads='all_cpus'
         )
@@ -122,10 +129,11 @@ class InferenceModel:
                 yield py[i], y[i]
 
 
-def predict_masks(df, models, TH, bs):
+def predict_masks(df, trainpath, models=[], TH=0.1, bs=0.5):
     preds, names = [], []
-    for idx, (sample, _) in tqdm(df.iterrows(), total=len(df)):
-        ds = InferenceDataset(sample)
+    for idx, (sample, *_) in tqdm(df.iterrows(), total=len(df)):
+        tiff = (trainpath / sample).with_suffix(".tiff")
+        ds = InferenceDataset(tiff)
 
         # rasterio cannot be used with multiple workers
         dl = torch.utils.data.DataLoader(
@@ -143,8 +151,7 @@ def predict_masks(df, models, TH, bs):
         mask = mask.view(ds.n0max, ds.n1max, ds.sz, ds.sz).\
             permute(0, 2, 1, 3).reshape(ds.n0max * ds.sz, ds.n1max * ds.sz)
 
-        mask = mask[ds.pad0 // 2:-(ds.pad0 - ds.pad0 // 2) if ds.pad0 > 0 else ds.n0max * ds.sz,
-                    ds.pad1 // 2:-(ds.pad1 - ds.pad1 // 2) if ds.pad1 > 0 else ds.n1max * ds.sz]
+        mask = nonpad(mask, ds.pad0, ds.n0max, ds.pad1, ds.n1max, ds.sz)
 
         names.append(sample)
         preds.append(rle_encode(mask.numpy()))
@@ -153,14 +160,23 @@ def predict_masks(df, models, TH, bs):
     return names, preds
 
 
-def main():
-    df = pd.read_csv(
-        "../input"
-        "/hubmap-kidney-segmentation/"
-        "sample_submission.csv"
-    )
+def ensure_path(path, kernel_path="/kaggle/input/hubmap-kidney-segmentation/"):
+    fpath = Path(path)
+    if fpath.exists():
+        return fpath
+    return Path(kernel_path) / fpath.name
 
-    names, preds = predict_masks(df)
+
+def main():
+    df = pd.read_csv(ensure_path("data/sample_submission.csv"))
+
+    # Run the inference
+    trainpath = ensure_path("data/test")
+    names, preds = predict_masks(df, trainpath)
+
+    # Dump the predictions
+    df = pd.DataFrame({'id': names, 'predicted': preds})
+    df.to_csv('submission.csv', index=False)
 
 
 if __name__ == '__main__':
