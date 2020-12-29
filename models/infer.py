@@ -4,7 +4,9 @@ import torch
 import numpy as np
 import pandas as pd
 import rasterio as rio
+
 from tqdm import tqdm
+from pathlib import Path
 
 
 def img2tensor(img, dtype: np.dtype = np.float32):
@@ -42,7 +44,7 @@ class InferenceDataset(torch.utils.data.Dataset):
 
     def __init__(self, filename, sz, reduction):
         self.data = rio.open(
-            filename.with_suffix('.tiff'),
+            filename,
             transform=self.identity,
             num_threads='all_cpus'
         )
@@ -127,10 +129,11 @@ class InferenceModel:
                 yield py[i], y[i]
 
 
-def predict_masks(df, models, TH, bs):
+def predict_masks(df, trainpath, models=[], TH=0.1, bs=0.5):
     preds, names = [], []
-    for idx, (sample, _) in tqdm(df.iterrows(), total=len(df)):
-        ds = InferenceDataset(sample)
+    for idx, (sample, *_) in tqdm(df.iterrows(), total=len(df)):
+        tiff = (trainpath / sample).with_suffix(".tiff")
+        ds = InferenceDataset(tiff)
 
         # rasterio cannot be used with multiple workers
         dl = torch.utils.data.DataLoader(
@@ -157,14 +160,23 @@ def predict_masks(df, models, TH, bs):
     return names, preds
 
 
-def main():
-    df = pd.read_csv(
-        "../input"
-        "/hubmap-kidney-segmentation/"
-        "sample_submission.csv"
-    )
+def ensure_path(path, kernel_path="/kaggle/input/hubmap-kidney-segmentation/"):
+    fpath = Path(path)
+    if fpath.exists():
+        return fpath
+    return Path(kernel_path) / fpath.name
 
-    names, preds = predict_masks(df)
+
+def main():
+    df = pd.read_csv(ensure_path("data/sample_submission.csv"))
+
+    # Run the inference
+    trainpath = ensure_path("data/test")
+    names, preds = predict_masks(df, trainpath)
+
+    # Dump the predictions
+    df = pd.DataFrame({'id': names, 'predicted': preds})
+    df.to_csv('submission.csv', index=False)
 
 
 if __name__ == '__main__':
