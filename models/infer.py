@@ -51,6 +51,7 @@ class InferenceDataset(torch.utils.data.Dataset):
         self.shape = self.data.shape
         self.reduction = reduction
         self.sz = reduction * sz
+        self.sz_raw = sz
         self.pad0 = (self.sz - self.shape[0] % self.sz) % self.sz
         self.pad1 = (self.sz - self.shape[1] % self.sz) % self.sz
         self.n0max = (self.shape[0] + self.pad0) // self.sz
@@ -76,7 +77,7 @@ class InferenceDataset(torch.utils.data.Dataset):
         p10, p11 = max(0, y0), min(y0 + self.sz, self.shape[1])
         img = np.zeros((self.sz, self.sz, 3), np.uint8)
         # mapping the loade region to the tile
-        w = rio.Window.from_slices((p00, p01), (p10, p11))
+        w = rio.windows.Window.from_slices((p00, p01), (p10, p11))
         img[(p00 - x0):(p01 - x0), (p10 - y0):(p11 - y0)] = \
             np.moveaxis(self.data.read([1, 2, 3], window=w), 0, -1)
 
@@ -87,7 +88,7 @@ class InferenceDataset(torch.utils.data.Dataset):
         # check for empty imges
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         h, s, v = cv2.split(hsv)
-        if self.is_saturated(img):
+        if self.is_saturated(img, s_th=40, p_th=200 * self.sz_raw // 256):
             # images with -1 will be skipped
             return img2tensor((img / 255.0 - self.mean) / self.std), -1
 
@@ -129,23 +130,25 @@ class InferenceModel:
                 yield py[i], y[i]
 
 
-def predict_masks(df, trainpath, models=[], TH=0.1, bs=0.5):
+def predict_masks(df, trainpath, models=[],
+                  sz=256, reduction=4,
+                  pthreshold=0.39, batch_size=64):
     preds, names = [], []
     for idx, (sample, *_) in tqdm(df.iterrows(), total=len(df)):
         tiff = (trainpath / sample).with_suffix(".tiff")
-        ds = InferenceDataset(tiff)
+        ds = InferenceDataset(tiff, sz, reduction)
 
         # rasterio cannot be used with multiple workers
         dl = torch.utils.data.DataLoader(
-            ds, bs, num_workers=0, shuffle=False, pin_memory=True)
+            ds, batch_size, num_workers=0, shuffle=False, pin_memory=True)
 
-        mp = InferenceModel(models, dl)
+        mp = InferenceModel(models, dl, reduction=reduction)
 
         # generate masks
         mask = torch.zeros(len(ds), ds.sz, ds.sz, dtype=torch.int8)
         for x, y in iter(dl):
             for p, i in mp(x, y):
-                mask[i.item()] = p.squeeze(-1) > TH
+                mask[i.item()] = p.squeeze(-1) > pthreshold
 
         # reshape tiled masks into a single mask and crop padding
         mask = mask.view(ds.n0max, ds.n1max, ds.sz, ds.sz).\
