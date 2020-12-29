@@ -133,6 +133,13 @@ class InferenceModel:
                 yield py[i], y[i]
 
 
+class DummyModel:
+    def __call__(self, x):
+        batch_size, c, h, w = x.shape
+        output = torch.randint(0, 2, (batch_size, 1, h, w)).to(x.device)
+        return output
+
+
 def predict_masks(df, trainpath, models=[],
                   sz=256, reduction=4,
                   pthreshold=0.39, batch_size=64):
@@ -178,7 +185,8 @@ def main():
 
     # Run the inference
     trainpath = ensure_path("data/test")
-    names, preds = predict_masks(df, trainpath)
+    models = [DummyModel()]
+    names, preds = predict_masks(df, trainpath, models=models)
 
     # Dump the predictions
     df = pd.DataFrame({'id': names, 'predicted': preds})
