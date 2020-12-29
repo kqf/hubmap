@@ -32,6 +32,11 @@ def rle_encode(img):
     return ' '.join(str(x) for x in runs)
 
 
+def nonpad(img, pad0, n0max, pad1, n1max, sz):
+    return img[pad0 // 2:-(pad0 - pad0 // 2) if pad0 > 0 else n0max * sz,
+               pad1 // 2:-(pad1 - pad1 // 2) if pad1 > 0 else n1max * sz]
+
+
 class InferenceDataset(torch.utils.data.Dataset):
     identity = rio.Affine(1, 0, 0, 0, 1, 0)
 
@@ -143,8 +148,7 @@ def predict_masks(df, models, TH, bs):
         mask = mask.view(ds.n0max, ds.n1max, ds.sz, ds.sz).\
             permute(0, 2, 1, 3).reshape(ds.n0max * ds.sz, ds.n1max * ds.sz)
 
-        mask = mask[ds.pad0 // 2:-(ds.pad0 - ds.pad0 // 2) if ds.pad0 > 0 else ds.n0max * ds.sz,
-                    ds.pad1 // 2:-(ds.pad1 - ds.pad1 // 2) if ds.pad1 > 0 else ds.n1max * ds.sz]
+        mask = nonpad(mask, ds.pad0, ds.n0max, ds.pad1, ds.n1max, ds.sz)
 
         names.append(sample)
         preds.append(rle_encode(mask.numpy()))
