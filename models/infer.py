@@ -137,7 +137,7 @@ class DummyModel:
     def __call__(self, x):
         batch_size, c, h, w = x.shape
         output = torch.randint(0, 2, (batch_size, 1, h, w)).to(x.device)
-        return output
+        return output.float()
 
 
 def predict_masks(df, trainpath, models=[],
@@ -185,7 +185,7 @@ def main():
 
     # Run the inference
     trainpath = ensure_path("data/test")
-    models = [DummyModel()]
+    models = [DummyModel(), DummyModel()]
     names, preds = predict_masks(df, trainpath, models=models)
 
     # Dump the predictions
