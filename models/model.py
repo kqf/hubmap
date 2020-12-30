@@ -1,13 +1,9 @@
 import torch
 import skorch
 import numpy as np
-import albumentations as alb
 
 from torchvision import models
-from albumentations.pytorch import ToTensorV2
-
-
-from model.metrics import iou_approx
+from models.metrics import iou_approx
 
 
 def make_decoder_block(in_channels, middle_channels, out_channels):
@@ -21,18 +17,6 @@ def make_decoder_block(in_channels, middle_channels, out_channels):
 
 
 class UNet(torch.nn.Module):
-    """UNet Model inspired by the the original UNet paper
-    Parameters
-    ----------
-    pretrained: bool (default=True)
-        Option to use pretrained vgg16_bn based on ImageNet
-    References
-    ----------
-    .. [1] Olaf Ronneberger, Philipp Fischer, Thomas Brox, 2015,
-        "U-Net: Convolutional Networks for Biomedical Image Segmentation,".
-        "MICCAI" `<https://arxiv.org/abs/1505.04597>`_
-    """
-
     def __init__(self, pretrained=False):
         super().__init__()
         encoder = models.vgg16_bn(pretrained=pretrained).features
@@ -76,7 +60,7 @@ class UNet(torch.nn.Module):
 
 
 class BCEWithLogitsLossPadding(torch.nn.Module):
-    def __init__(self, padding=16):
+    def __init__(self, padding=0):
         super().__init__()
         self.padding = padding
 
@@ -94,33 +78,6 @@ class SegmentationNet(skorch.NeuralNet):
         return 1 / (1 + np.exp(-logits))
 
 
-def normalize_transform():
-    return alb.Compose([
-        alb.PadIfNeeded(256, 256),
-        alb.Normalize(
-            mean=[0.485, 0.456, 0.406],
-            std=[0.229, 0.224, 0.225],
-        ),
-        ToTensorV2(),
-    ])
-
-
-def train_transform():
-    return alb.Compose([
-        alb.PadIfNeeded(256, 256),
-        alb.RandomCrop(224, 224),
-        alb.HorizontalFlip(),
-        alb.VerticalFlip(),
-        normalize_transform(),
-    ])
-
-
-def test_transform():
-    return alb.Compose([
-        normalize_transform(),
-    ])
-
-
 def score(net, ds, y):
     predicted_logit_masks = net.predict(ds)
     return iou_approx(y, predicted_logit_masks)
@@ -130,7 +87,7 @@ def build_model(max_epochs=2):
     model = SegmentationNet(
         UNet,
         criterion=BCEWithLogitsLossPadding,
-        criterion__padding=16,
+        criterion__padding=0,
         batch_size=32,
         max_epochs=max_epochs,
         optimizer__momentum=0.9,
