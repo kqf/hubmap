@@ -3,7 +3,7 @@ import skorch
 import numpy as np
 
 from torchvision import models
-from model.metrics import iou_approx
+from models.metrics import iou_approx
 
 
 def make_decoder_block(in_channels, middle_channels, out_channels):
