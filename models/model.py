@@ -60,7 +60,7 @@ class UNet(torch.nn.Module):
 
 
 class BCEWithLogitsLossPadding(torch.nn.Module):
-    def __init__(self, padding=16):
+    def __init__(self, padding=0):
         super().__init__()
         self.padding = padding
 
@@ -87,7 +87,7 @@ def build_model(max_epochs=2):
     model = SegmentationNet(
         UNet,
         criterion=BCEWithLogitsLossPadding,
-        criterion__padding=16,
+        criterion__padding=0,
         batch_size=32,
         max_epochs=max_epochs,
         optimizer__momentum=0.9,
