@@ -8,7 +8,6 @@ _std = [0.229, 0.224, 0.225]
 
 def transform(train=True, mean=None, std=None):
     normalize = alb.Compose([
-        alb.PadIfNeeded(256, 256),
         alb.Normalize(mean=mean or _mean, std=std or _std),
         ToTensorV2(),
     ])
