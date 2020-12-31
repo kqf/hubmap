@@ -15,6 +15,7 @@ def main(fin):
 
     model = build_model()
     model.fit(train)
+    model.save_params(f_params='final.pkl')
 
 
 if __name__ == '__main__':

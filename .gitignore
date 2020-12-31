@@ -17,3 +17,4 @@ data/
 
 # Model
 *.pt
+*.pkl
