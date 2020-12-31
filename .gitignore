@@ -14,3 +14,7 @@ data/
 *.tiff
 *.json
 *.csv
+
+# Model
+*.pt
+*.pkl
