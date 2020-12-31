@@ -1,12 +1,12 @@
 competition = hubmap-kidney-segmentation
 
 
-infer:
-	python models/infer.py
-
-
 train: data/train/preprocessed/
 	python models/main.py --fin $^
+
+
+infer:
+	python models/infer.py
 
 
 data/train/preprocessed/: data/train
