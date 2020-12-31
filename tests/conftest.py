@@ -14,7 +14,7 @@ def size():
 
 
 @pytest.fixture
-def fake_dataset(size=256, nfiles=10):
+def fake_dataset(size=256, nfiles=5):
     with tempfile.TemporaryDirectory() as dirname:
         path = Path(dirname)
         for i in range(nfiles):
