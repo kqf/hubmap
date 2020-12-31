@@ -90,6 +90,7 @@ def score(net, ds, y):
 
 def build_model(max_epochs=2):
     env = Env()
+    env.read_env()
 
     model = SegmentationNet(
         UNet,
