@@ -66,9 +66,10 @@ class BCEWithLogitsLossPadding(torch.nn.Module):
 
     def forward(self, input, target):
         x = input.squeeze_(dim=1)
-        x = x[:, self.padding:-self.padding, self.padding:-self.padding]
-        y = target.squeeze_(dim=1)
-        y = y[:, self.padding:-self.padding, self.padding:-self.padding]
+        _, h, w = x.shape
+        x = x[:, self.padding:h - self.padding, self.padding:w - self.padding]
+        y = target.squeeze_(dim=1).float()
+        y = y[:, self.padding:h - self.padding, self.padding:w - self.padding]
         return torch.nn.functional.binary_cross_entropy_with_logits(x, y)
 
 
