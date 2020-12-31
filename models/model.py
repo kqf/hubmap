@@ -2,6 +2,7 @@ import torch
 import skorch
 import numpy as np
 
+from environs import Env
 from torchvision import models
 from tensorboardX import SummaryWriter
 
@@ -88,6 +89,8 @@ def score(net, ds, y):
 
 
 def build_model(max_epochs=2):
+    env = Env()
+
     model = SegmentationNet(
         UNet,
         criterion=BCEWithLogitsLossPadding,
@@ -104,7 +107,7 @@ def build_model(max_epochs=2):
             skorch.callbacks.ProgressBar(),
             skorch.callbacks.EpochScoring(
                 score, name='iou', lower_is_better=False),
-            TensorBoardWithImages(SummaryWriter()),
+            TensorBoardWithImages(SummaryWriter(env("TENSORBOARD_DIR", "."))),
 
         ],
         device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
