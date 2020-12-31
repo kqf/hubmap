@@ -4,6 +4,7 @@ import numpy as np
 
 from torchvision import models
 from models.metrics import iou_approx
+from tensorboardX import SummaryWriter
 
 
 def make_decoder_block(in_channels, middle_channels, out_channels):
@@ -100,7 +101,8 @@ def build_model(max_epochs=2):
             skorch.callbacks.Checkpoint(f_params='best-params.pt'),
             skorch.callbacks.ProgressBar(),
             skorch.callbacks.EpochScoring(
-                score, name='iou', lower_is_better=False)
+                score, name='iou', lower_is_better=False),
+            skorch.callbacks.TensorBoard(SummaryWriter()),
 
         ],
         device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
