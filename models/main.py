@@ -13,7 +13,7 @@ def main(fin):
     train_folders = list(Path(fin).glob("*/*"))
     train = RawDataset(train_folders, transform=transform(train=False))
 
-    model = build_model()
+    model = build_model(max_epochs=50)
     model.fit(train)
     model.save_params(f_params='final.pkl')
 
