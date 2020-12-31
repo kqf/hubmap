@@ -8,6 +8,7 @@
 .eggs
 *.egg-info
 .coverage
+.env
 
 # Data
 data/
