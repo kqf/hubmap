@@ -8,6 +8,7 @@
 .eggs
 *.egg-info
 .coverage
+.env
 
 # Data
 data/
@@ -20,4 +21,4 @@ data/
 *.pkl
 
 # Tensorboard logs
-runs/
+events.out.*
