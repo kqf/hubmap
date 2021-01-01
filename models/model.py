@@ -92,6 +92,13 @@ def build_model(max_epochs=2):
     env = Env()
     env.read_env()
 
+    scheduler = skorch.callbacks.LRScheduler(
+        policy=torch.optim.lr_scheduler.CyclicLR,
+        base_lr=0.002,
+        max_lr=0.2,
+        step_size_up=540,
+        step_size_down=540)
+
     model = SegmentationNet(
         UNet,
         criterion=BCEWithLogitsLossPadding,
@@ -109,7 +116,7 @@ def build_model(max_epochs=2):
             skorch.callbacks.EpochScoring(
                 score, name='iou', lower_is_better=False),
             TensorBoardWithImages(SummaryWriter(env("TENSORBOARD_DIR", "."))),
-
+            scheduler,
         ],
         device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
     )
