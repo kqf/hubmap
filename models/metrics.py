@@ -28,6 +28,6 @@ def dice(probas, masks, th):
 
     # Handle the situation when union is zero
     regularized_inter = np.where(union > 0.0, inter, np.zeros_like(union))
-    regularized_union = np.where(union > 0.0, union, np.ones_lik(union))
+    regularized_union = np.where(union > 0.0, union, np.ones_like(union))
 
     return 2 * regularized_inter / regularized_union
