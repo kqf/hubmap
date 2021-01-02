@@ -2,7 +2,6 @@ import torch
 import skorch
 import numpy as np
 
-from environs import Env
 from torchvision import models
 from tensorboardX import SummaryWriter
 
@@ -88,10 +87,7 @@ def score(net, ds, y):
     return iou_approx(y, predicted_logit_masks)
 
 
-def build_model(max_epochs=2):
-    env = Env()
-    env.read_env()
-
+def build_model(max_epochs=2, logdir="."):
     scheduler = skorch.callbacks.LRScheduler(
         policy=torch.optim.lr_scheduler.CyclicLR,
         base_lr=0.002,
@@ -113,11 +109,11 @@ def build_model(max_epochs=2):
         iterator_valid__shuffle=False,
         iterator_valid__num_workers=4,
         callbacks=[
-            skorch.callbacks.Checkpoint(f_params='best-params.pt'),
+            skorch.callbacks.Checkpoint(dirname=logdir),
             skorch.callbacks.ProgressBar(),
             skorch.callbacks.EpochScoring(
                 score, name='iou', lower_is_better=False),
-            TensorBoardWithImages(SummaryWriter(env("TENSORBOARD_DIR", "."))),
+            TensorBoardWithImages(SummaryWriter(logdir)),
             scheduler,
         ],
         device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
