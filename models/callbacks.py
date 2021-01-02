@@ -6,7 +6,6 @@ import torchvision
 class TensorBoardWithImages(skorch.callbacks.TensorBoard):
     def on_batch_end(self, net, X, y, training, loss, y_pred):
         n_batches = len(net.history[-1, "batches"])
-
         if (n_batches % 10) != 0:
             return
 
