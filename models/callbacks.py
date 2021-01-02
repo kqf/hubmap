@@ -12,6 +12,6 @@ class TensorBoardWithImages(skorch.callbacks.TensorBoard):
         label_grid = torchvision.utils.make_grid(y.unsqueeze(1).float())
         self.writer.add_image("true_labels", label_grid, n_batches)
 
-        probas = torch.nn.functional.softmax(y_pred)
+        probas = torch.sigmoid(y_pred)
         pred_grid = torchvision.utils.make_grid(probas.unsqueeze(1))
         self.writer.add_image("pred_labels", pred_grid, n_batches)

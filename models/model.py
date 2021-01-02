@@ -97,7 +97,7 @@ def build_model(max_epochs=2):
         base_lr=0.002,
         max_lr=0.2,
         step_size_up=2500,
-        step_size_down=2500
+        step_size_down=2500,
     )
 
     model = SegmentationNet(
