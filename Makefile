@@ -2,7 +2,7 @@ competition = hubmap-kidney-segmentation
 
 
 train: data/train/preprocessed/
-	python models/main.py --fin $^ --message=$(message)
+	python models/main.py --fin $^ --message="$(message)"
 
 
 infer:

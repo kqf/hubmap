@@ -31,7 +31,7 @@ def main(fin, message):
     )
 
     model = build_model(
-        max_epochs=1,
+        max_epochs=50,
         logdir=logdir,
         logdir_local=logdir_local
     )
