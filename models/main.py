@@ -26,7 +26,7 @@ def main(fin, message):
         message.replace(" ", "-")
     )
     logdir_local = os.path.join(
-        env("TENSORBOARD_DIR", "."),
+        "trained",
         message.replace(" ", "-")
     )
 
