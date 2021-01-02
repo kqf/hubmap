@@ -30,4 +30,5 @@ def dice(probas, masks, th):
     regularized_inter = np.where(union > 0.0, inter, np.zeros_like(union))
     regularized_union = np.where(union > 0.0, union, np.ones_like(union))
 
-    return 2 * regularized_inter / regularized_union
+    # Remove the extra dimension when th is scalar
+    return np.squeeze(2 * regularized_inter / regularized_union)
