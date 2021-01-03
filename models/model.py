@@ -81,7 +81,7 @@ def score(net, ds, y):
     return iou_approx(y, predicted_logit_masks)
 
 
-def build_model(max_epochs=2, logdir=".", logdir_local=".", train_split=None):
+def build_model(max_epochs=2, logdir=".", train_split=None):
     # scheduler = skorch.callbacks.LRScheduler(
     #     policy=torch.optim.lr_scheduler.CyclicLR,
     #     base_lr=0.002,
@@ -104,7 +104,7 @@ def build_model(max_epochs=2, logdir=".", logdir_local=".", train_split=None):
         iterator_valid__num_workers=4,
         train_split=train_split,
         callbacks=[
-            skorch.callbacks.Checkpoint(dirname=logdir_local),
+            skorch.callbacks.Checkpoint(dirname=logdir),
             skorch.callbacks.ProgressBar(),
             skorch.callbacks.EpochScoring(
                 score, name='iou', lower_is_better=False),
