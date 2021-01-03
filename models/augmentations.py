@@ -2,8 +2,9 @@ import cv2
 import albumentations as alb
 from albumentations.pytorch import ToTensorV2
 
-_mean = [0.485, 0.456, 0.406],
-_std = [0.229, 0.224, 0.225]
+
+_mean = [0.654599, 0.483866, 0.694284]
+_std = [0.151680, 0.235841, 0.131461]
 
 
 def transform(train=True, mean=None, std=None):

@@ -1,3 +1,4 @@
+kaggle
 pytest
 tqdm
 skorch
