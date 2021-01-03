@@ -104,12 +104,12 @@ def build_model(max_epochs=2, logdir=".", train_split=None):
         iterator_valid__num_workers=4,
         train_split=train_split,
         callbacks=[
-            skorch.callbacks.Checkpoint(dirname=logdir),
             skorch.callbacks.ProgressBar(),
             skorch.callbacks.EpochScoring(
                 score, name='iou', lower_is_better=False),
             TensorBoardWithImages(SummaryWriter(logdir)),
-            # scheduler,
+            skorch.callbacks.Checkpoint(dirname=logdir),
+            skorch.callbacks.TrainEndCheckpoint(dirname=logdir),
         ],
         device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
     )
