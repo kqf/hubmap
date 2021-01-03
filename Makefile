@@ -1,7 +1,7 @@
 competition = hubmap-kidney-segmentation
 
 
-train: data/train/preprocessed/
+develop: data/train/preprocessed/
 	python models/main.py --fin $^ --message="$(message)"
 
 
@@ -35,4 +35,4 @@ tolocal:
 	scp $(instance):~/hubmap/data/test/b2dc8411c-anatomical-structure.json data/test
 
 
-.PHONY: tolocal infer train
+.PHONY: tolocal infer develop
