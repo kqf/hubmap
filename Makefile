@@ -35,4 +35,4 @@ tolocal:
 	scp $(instance):~/hubmap/data/test/b2dc8411c-anatomical-structure.json data/test
 
 
-.PHONY: tolocal
+.PHONY: tolocal infer train
