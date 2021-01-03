@@ -121,7 +121,7 @@ def main(codes, fin, fout):
             write(bgr, tilepath=out_folder / f"{i}" / "tile.png")
             write(tmask, tilepath=out_folder / f"{i}" / "mask.png")
 
-        dump_averages(x, x2, fout)
+    dump_averages(x, x2, fout)
 
 
 if __name__ == "__main__":
