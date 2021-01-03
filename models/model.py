@@ -87,15 +87,15 @@ def score(net, ds, y):
     return iou_approx(y, predicted_logit_masks)
 
 
-def build_model(max_epochs=2, logdir=".", logdir_local="."):
-    scheduler = skorch.callbacks.LRScheduler(
-        policy=torch.optim.lr_scheduler.CyclicLR,
-        base_lr=0.002,
-        max_lr=0.2,
-        step_size_up=2500,
-        step_size_down=2500,
-        step_every='batch',
-    )
+def build_model(max_epochs=2, logdir=".", logdir_local=".", train_split=None):
+    # scheduler = skorch.callbacks.LRScheduler(
+    #     policy=torch.optim.lr_scheduler.CyclicLR,
+    #     base_lr=0.002,
+    #     max_lr=0.2,
+    #     step_size_up=2500,
+    #     step_size_down=2500,
+    #     step_every='batch',
+    # )
 
     model = SegmentationNet(
         UNet,
@@ -108,13 +108,14 @@ def build_model(max_epochs=2, logdir=".", logdir_local="."):
         iterator_train__num_workers=4,
         iterator_valid__shuffle=False,
         iterator_valid__num_workers=4,
+        train_split=train_split,
         callbacks=[
             skorch.callbacks.Checkpoint(dirname=logdir_local),
             skorch.callbacks.ProgressBar(),
             skorch.callbacks.EpochScoring(
                 score, name='iou', lower_is_better=False),
             TensorBoardWithImages(SummaryWriter(logdir)),
-            scheduler,
+            # scheduler,
         ],
         device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
     )
