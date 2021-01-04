@@ -14,7 +14,7 @@ def make_blob(h=256, w=256, lam=5, area=8, std_area=1):
     dists = np.sqrt((X[..., None] - cx) ** 2 + (Y[..., None] - cy) ** 2)
 
     mask = dists <= radii
-    return mask.sum(axis=-1).astype(bool)
+    return mask.sum(axis=-1).astype(np.uint8)
 
 
 def blob2image(blob, channels=3, epsilon=0.1):
@@ -26,4 +26,4 @@ def blob2image(blob, channels=3, epsilon=0.1):
     noise = np.random.poisson(extended + epsilon, size=(h, w, channels))
 
     # Convet to image scale
-    return extended + noise * 255
+    return (extended + noise * 255).astype(np.uint8)
