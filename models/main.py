@@ -43,19 +43,13 @@ def main(fin, message):
         env("TENSORBOARD_DIR", "."),
         message.replace(" ", "-")
     )
-    logdir_local = os.path.join(
-        "trained",
-        message.replace(" ", "-")
-    )
 
     model = build_model(
         max_epochs=50,
         logdir=logdir,
-        logdir_local=logdir_local,
         train_split=predefined_split(test),
     )
     model.fit(train)
-    model.save_params(f_params=os.path.join(logdir_local, 'final.pkl'))
 
 
 if __name__ == '__main__':

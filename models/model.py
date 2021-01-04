@@ -1,12 +1,12 @@
 import torch
 import skorch
-import numpy as np
 
 from torchvision import models
 from tensorboardX import SummaryWriter
 
 from models.metrics import iou_approx
 from models.callbacks import TensorBoardWithImages
+from models.segnet import SegNet
 
 
 def make_decoder_block(in_channels, middle_channels, out_channels):
@@ -76,18 +76,12 @@ class BCEWithLogitsLossPadding(torch.nn.Module):
         return torch.nn.functional.binary_cross_entropy_with_logits(x, y)
 
 
-class SegmentationNet(skorch.NeuralNet):
-    def predict_proba(self, X, y=None):
-        logits = super().predict_proba(X)
-        return 1 / (1 + np.exp(-logits))
-
-
 def score(net, ds, y):
     predicted_logit_masks = net.predict(ds)
     return iou_approx(y, predicted_logit_masks)
 
 
-def build_model(max_epochs=2, logdir=".", logdir_local=".", train_split=None):
+def build_model(max_epochs=2, logdir=".", train_split=None):
     # scheduler = skorch.callbacks.LRScheduler(
     #     policy=torch.optim.lr_scheduler.CyclicLR,
     #     base_lr=0.002,
@@ -97,7 +91,7 @@ def build_model(max_epochs=2, logdir=".", logdir_local=".", train_split=None):
     #     step_every='batch',
     # )
 
-    model = SegmentationNet(
+    model = SegNet(
         UNet,
         criterion=BCEWithLogitsLossPadding,
         criterion__padding=0,
@@ -110,12 +104,12 @@ def build_model(max_epochs=2, logdir=".", logdir_local=".", train_split=None):
         iterator_valid__num_workers=4,
         train_split=train_split,
         callbacks=[
-            skorch.callbacks.Checkpoint(dirname=logdir_local),
             skorch.callbacks.ProgressBar(),
             skorch.callbacks.EpochScoring(
                 score, name='iou', lower_is_better=False),
             TensorBoardWithImages(SummaryWriter(logdir)),
-            # scheduler,
+            skorch.callbacks.Checkpoint(dirname=logdir),
+            skorch.callbacks.TrainEndCheckpoint(dirname=logdir),
         ],
         device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
     )
