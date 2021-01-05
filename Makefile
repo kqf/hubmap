@@ -20,6 +20,21 @@ data/:
 	rm -rf data/$(competition).zip
 
 
+push-data:
+	mkdir -p .tmp_submit
+	cp dataset-metadata.json .tmp_submit/
+	cp requirements.txt .tmp_submit/
+	cp setup.py .tmp_submit
+	cp -R models .tmp_submit/models
+	rm .tmp_submit/models/kernel-metadata.json
+	kaggle datasets version -p .tmp_submit -r zip -m "$(message)"
+	rm -rf .tmp_submit
+
+
+push-kernels:
+	kaggle kernels push -p models/
+
+
 tolocal:
 	mkdir -p data/train
 
@@ -35,4 +50,4 @@ tolocal:
 	scp $(instance):~/hubmap/data/test/b2dc8411c-anatomical-structure.json data/test
 
 
-.PHONY: tolocal infer develop
+.PHONY: tolocal infer develop upload-sources
