@@ -31,6 +31,9 @@ upload-sources:
 	rm -rf .tmp_submit
 
 
+push-kernels:
+	kaggle kernels push -p models/
+
 
 tolocal:
 	mkdir -p data/train
