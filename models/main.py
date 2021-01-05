@@ -34,7 +34,7 @@ def main(fin, message):
 
     folders = list(Path(fin).glob("*/*"))
     ftrain, ftest = train_test_split(folders, random_state=SEED)
-    train = RawDataset(ftrain, transform=transform(train=False))
+    train = RawDataset(ftrain, transform=transform(train=True))
     test = RawDataset(ftest, transform=transform(train=False))
 
     env = Env()

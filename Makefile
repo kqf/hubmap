@@ -50,4 +50,4 @@ tolocal:
 	scp $(instance):~/hubmap/data/test/b2dc8411c-anatomical-structure.json data/test
 
 
-.PHONY: tolocal infer develop upload-sources
+.PHONY: tolocal infer develop push-data push-kernels
