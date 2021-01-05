@@ -15,6 +15,7 @@ data/
 *.tiff
 *.json
 *.csv
+kernel-metadata.json
 
 # Model
 *.pt
