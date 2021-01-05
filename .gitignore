@@ -16,6 +16,7 @@ data/
 *.json
 *.csv
 kernel-metadata.json
+dataset-metadata.json
 
 # Model
 *.pt
