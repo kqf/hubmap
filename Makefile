@@ -20,7 +20,7 @@ data/:
 	rm -rf data/$(competition).zip
 
 
-upload-sources:
+push-data:
 	mkdir -p .tmp_submit
 	cp dataset-metadata.json .tmp_submit/
 	cp requirements.txt .tmp_submit/
