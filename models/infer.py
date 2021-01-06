@@ -1,12 +1,27 @@
+import sys
 import cv2
 import gc
 import torch
+import pathlib
 import numpy as np
 import pandas as pd
 import rasterio as rio
 
 from tqdm import tqdm
 from pathlib import Path
+
+MODELS = pathlib.Path("../input/hubmap-models/")
+sys.path.insert(0, MODELS)
+
+
+def read_model(path=MODELS):
+    from models.modules import UNet
+    model = UNet()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    state = torch.load(path / "weights" / "params.pt", map_location=device)
+    model.load_state_dict(state)
+    model.to(device)
+    return model
 
 
 def img2tensor(img, dtype: np.dtype = np.float32):
@@ -133,13 +148,6 @@ class InferenceModel:
                 yield py[i], y[i]
 
 
-class DummyModel:
-    def __call__(self, x):
-        batch_size, c, h, w = x.shape
-        output = torch.randint(0, 2, (batch_size, 1, h, w)).to(x.device)
-        return output.float()
-
-
 def predict_masks(df, trainpath, models=[],
                   sz=256, reduction=4,
                   pthreshold=0.39, batch_size=64):
@@ -185,7 +193,7 @@ def main():
 
     # Run the inference
     trainpath = ensure_path("data/test")
-    models = [DummyModel(), DummyModel()]
+    models = [read_model(pathlib.Path("."))]
     names, preds = predict_masks(df, trainpath, models=models)
 
     # Dump the predictions
