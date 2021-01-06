@@ -15,6 +15,7 @@ sys.path.insert(0, MODELS)
 
 
 def read_model(path):
+    sys.path.insert(0, MODELS)
     from models.modules import UNet
     model = UNet()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
