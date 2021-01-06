@@ -2,7 +2,6 @@ import sys
 import cv2
 import gc
 import torch
-import pathlib
 import numpy as np
 import pandas as pd
 import rasterio as rio
@@ -10,13 +9,16 @@ import rasterio as rio
 from tqdm import tqdm
 from pathlib import Path
 
-MODELS = pathlib.Path("/kaggle/input/hubmap-models/")
-sys.path.insert(0, MODELS)
+try:
+    from models.modules import UNet
+except ModuleNotFoundError:
+    import subprocess
+    MODELS = "/kaggle/input/hubmap-models/"
+    subprocess.check_call([sys.executable, "-m", "pip", "install", MODELS])
+    from models.modules import UNet
 
 
 def read_model(path):
-    sys.path.insert(0, MODELS)
-    from models.modules import UNet
     model = UNet()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     state = torch.load(path, map_location=device)
