@@ -12,5 +12,4 @@ albumentations
 pytest-cov
 rasterio
 tensorboardX
-environs
 gcsfs

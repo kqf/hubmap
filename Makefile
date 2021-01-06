@@ -1,8 +1,9 @@
 competition = hubmap-kidney-segmentation
+logdir = $(TENSORBOARD_DIR)/$(message)
 
 
 develop: data/train/preprocessed/
-	python models/main.py --fin $^ --message="$(message)"
+	python models/main.py --fin $^ --logdir="$(message)"
 
 
 infer:
