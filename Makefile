@@ -27,6 +27,7 @@ push-data:
 	cp requirements.txt .tmp_submit/
 	cp setup.py .tmp_submit
 	cp -R models .tmp_submit/models
+	cp -R weights .tmp_submit/weights
 	rm .tmp_submit/models/kernel-metadata.json
 	kaggle datasets version -p .tmp_submit -r zip -m "$(message)"
 	rm -rf .tmp_submit
