@@ -10,15 +10,15 @@ import rasterio as rio
 from tqdm import tqdm
 from pathlib import Path
 
-MODELS = pathlib.Path("../input/hubmap-models/")
+MODELS = pathlib.Path("/kaggle/input/hubmap-models/")
 sys.path.insert(0, MODELS)
 
 
-def read_model(path=MODELS):
+def read_model(path):
     from models.modules import UNet
     model = UNet()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    state = torch.load(path / "weights" / "params.pt", map_location=device)
+    state = torch.load(path, map_location=device)
     model.load_state_dict(state)
     model.to(device)
     return model
@@ -188,12 +188,19 @@ def ensure_path(path, kernel_path="/kaggle/input/hubmap-kidney-segmentation/"):
     return Path(kernel_path) / fpath.name
 
 
+def _path(path, kernel_path="/kaggle/input/hubmap-kidney-segmentation/"):
+    fpath = Path(path)
+    if fpath.exists():
+        return fpath
+    return Path(kernel_path) / fpath
+
+
 def main():
     df = pd.read_csv(ensure_path("data/sample_submission.csv"))
 
     # Run the inference
     trainpath = ensure_path("data/test")
-    models = [read_model(pathlib.Path("."))]
+    models = [read_model(_path("weights/params.pt", MODELS))]
     names, preds = predict_masks(df, trainpath, models=models)
 
     # Dump the predictions
