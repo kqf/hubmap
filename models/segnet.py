@@ -1,7 +1,11 @@
+import torch
 import gcsfs
 import skorch
 import numpy as np
 import contextlib
+
+
+from models.metrics import dice
 
 
 @contextlib.contextmanager
@@ -26,3 +30,18 @@ class SegNet(skorch.NeuralNet):
                 for par_name, par_value in kwargs.items()
             }
             super().save_params(**nkwargs)
+
+    def thresholds(self, X, func=dice):
+        dataset = self.get_dataset(X)
+        dices_ = []
+        for X, mask in self.get_iterator(dataset, training=False):
+            logits = self.evaluation_step(X, training=False)
+            yproba = torch.sigmoid(logits).squeeze()
+            # Squeeze the channel dimension
+            dices_.append(func(yproba.cpu().numpy(), mask.cpu().numpy()))
+
+        dices = np.stack(dices_)
+
+        # Average along the batch dimension,
+        # Warning: these are estimates per tile (not per image or pixel)
+        return dices.mean(axis=0), dices.std(axis=0)
