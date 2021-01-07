@@ -49,5 +49,6 @@ def plot(mean, thresholds, std=None, cfg=None):
 
     peak = thresholds[mean.argmax()]
     plt.axvline(x=peak, ymax=mean.max(), color='k', ls='--')
+    plt.text(peak, mean.mean(), f'threshold = {peak:.4g}')
 
     plt.show()
