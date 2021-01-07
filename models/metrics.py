@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def iou_approx(true_masks, probas, padding=0):
@@ -32,3 +33,21 @@ def dice(probas, masks, th=np.arange(0.1, 0.9, 0.01)):
 
     # Remove the extra dimension when th is scalar
     return np.squeeze(2 * regularized_inter / regularized_union)
+
+
+def plot(mean, thresholds, std=None, cfg=None):
+    cfg = cfg or dict(
+        ls='',
+        marker='o',
+        markersize=2,
+        capsize=1,
+        capthick=1,
+    )
+    plt.errorbar(thresholds, mean, yerr=std, **cfg)
+    plt.ylabel('dice coefficient')
+    plt.xlabel('thresholds')
+
+    peak = thresholds[mean.argmax()]
+    plt.axvline(x=peak, ymax=mean.max(), color='k', ls='--')
+
+    plt.show()
