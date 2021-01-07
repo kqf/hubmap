@@ -33,12 +33,15 @@ class SegNet(skorch.NeuralNet):
 
     def thresholds(self, X, func=dice):
         dataset = self.get_dataset(X)
-        dices = []
+        dices_ = []
         for X, mask in self.get_iterator(dataset, training=False):
             logits = self.evaluation_step(X, training=False)
             yproba = torch.sigmoid(logits)
+            # Squeeze the channel dimension
+            dices_.append(func(yproba.squeeze().cpu(), mask.cpu()))
 
-            batch = func(yproba.cpu(), mask.cpu())
-            dices.append(batch.mean(axis=(1, 2)))
+        dices = np.stack(dices_)
 
-        return dices
+        # Average along the batch dimension,
+        # Warning: these are estimates per tile (not per image or pixel)
+        return dices.mean(axis=0), dices.std(axis=0)
