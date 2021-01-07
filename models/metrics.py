@@ -12,7 +12,9 @@ def iou_approx(true_masks, probas, padding=0):
     return np.mean(approx_intersect / approx_union)
 
 
-def dice(probas, masks, th):
+def dice(probas, masks, th=None):
+    th = th or np.arange(0.1, 0.9, 0.01)
+
     # Ensure threshold dimension: [b, h, w] -> [b, h, w, 1]
     probas = probas[..., None]
     masks = masks[..., None]

@@ -36,9 +36,9 @@ class SegNet(skorch.NeuralNet):
         dices_ = []
         for X, mask in self.get_iterator(dataset, training=False):
             logits = self.evaluation_step(X, training=False)
-            yproba = torch.sigmoid(logits)
+            yproba = torch.sigmoid(logits).squeeze()
             # Squeeze the channel dimension
-            dices_.append(func(yproba.squeeze().cpu(), mask.cpu()))
+            dices_.append(func(yproba.cpu().numpy(), mask.cpu().numpy()))
 
         dices = np.stack(dices_)
 
