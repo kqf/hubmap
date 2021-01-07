@@ -1,7 +1,11 @@
+import torch
 import gcsfs
 import skorch
 import numpy as np
 import contextlib
+
+
+from models.metrics import dice
 
 
 @contextlib.contextmanager
@@ -26,3 +30,15 @@ class SegNet(skorch.NeuralNet):
                 for par_name, par_value in kwargs.items()
             }
             super().save_params(**nkwargs)
+
+    def thresholds(self, X, func=dice):
+        dataset = self.get_dataset(X)
+        dices = []
+        for X, mask in self.get_iterator(dataset, training=False):
+            logits = self.evaluation_step(X, training=False)
+            yproba = torch.sigmoid(logits)
+
+            batch = func(yproba.cpu(), mask.cpu())
+            dices.append(batch.mean(axis=(1, 2)))
+
+        return dices
