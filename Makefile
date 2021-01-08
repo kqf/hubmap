@@ -4,10 +4,6 @@ logdir = $(TENSORBOARD_DIR)/$(message)
 
 develop: data/train/preprocessed/
 	python models/main.py --fin $^ --logdir=$(logdir)
-
-
-thresholds: data/train/preprocessed/
-	python models/thresholds.py --fin $^ --logdir=$(logdir)
 	gsutil -m cp thresholds.png $(logdir)
 
 
