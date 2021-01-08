@@ -1,8 +1,11 @@
+import os
+import gcsfs
 import click
 import torch
 import random
 import numpy as np
 
+from functools import partial
 from pathlib import Path
 from click import Path as cpath
 from sklearn.model_selection import train_test_split
@@ -11,6 +14,7 @@ from skorch.helper import predefined_split
 from models.dataset import RawDataset
 from models.augmentations import transform
 from models.model import build_model
+from models.metrics import dice, plot
 
 
 SEED = 137
@@ -28,7 +32,8 @@ torch.backends.cudnn.deterministic = True
 def main(fin, logdir):
     folders = list(Path(fin).glob("*/*"))
     ftrain, ftest = train_test_split(folders, random_state=SEED)
-    train = RawDataset(ftrain, transform=transform(train=True))
+
+    # train = RawDataset(ftrain, transform=transform(train=True))
     test = RawDataset(ftest, transform=transform(train=False))
 
     model = build_model(
@@ -36,7 +41,15 @@ def main(fin, logdir):
         logdir=logdir,
         train_split=predefined_split(test),
     )
-    model.fit(train)
+
+    model.initialize()
+    fs = gcsfs.GCSFileSystem()
+    with fs.open(os.path.join(logdir, "train_end_params.pt"), "rb") as f:
+        model.load_params(f_params=f)
+
+    th = np.arange(0.1, 0.9, 0.01)
+    mean, std = model.thresholds(test, partial(dice, th=th))
+    plot(mean, thresholds=th, std=std)
 
 
 if __name__ == '__main__':
