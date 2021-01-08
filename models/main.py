@@ -7,10 +7,12 @@ from pathlib import Path
 from click import Path as cpath
 from sklearn.model_selection import train_test_split
 from skorch.helper import predefined_split
+from functools import partial
 
 from models.dataset import RawDataset
 from models.augmentations import transform
 from models.model import build_model
+from models.metrics import dice, plot
 
 
 SEED = 137
@@ -37,6 +39,10 @@ def main(fin, logdir):
         train_split=predefined_split(test),
     )
     model.fit(train)
+
+    th = np.arange(0.1, 0.9, 0.01)
+    mean, std = model.thresholds(test, partial(dice, th=th))
+    plot(mean, thresholds=th)
 
 
 if __name__ == '__main__':
