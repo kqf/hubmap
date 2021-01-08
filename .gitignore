@@ -17,6 +17,7 @@ data/
 *.csv
 kernel-metadata.json
 dataset-metadata.json
+thresholds.png
 
 # Model
 *.pt

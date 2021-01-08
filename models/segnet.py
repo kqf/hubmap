@@ -40,7 +40,7 @@ class SegNet(skorch.NeuralNet):
             # Squeeze the channel dimension
             dices_.append(func(yproba.cpu().numpy(), mask.cpu().numpy()))
 
-        dices = np.stack(dices_)
+        dices = np.vstack(dices_)
 
         # Average along the batch dimension,
         # Warning: these are estimates per tile (not per image or pixel)

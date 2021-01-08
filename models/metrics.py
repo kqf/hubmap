@@ -35,7 +35,7 @@ def dice(probas, masks, th=np.arange(0.1, 0.9, 0.01)):
     return np.squeeze(2 * regularized_inter / regularized_union)
 
 
-def plot(mean, thresholds, std=None, cfg=None):
+def plot(mean, thresholds, std=None, cfg=None, fname='thresholds.png'):
     cfg = cfg or dict(
         ls='',
         marker='o',
@@ -52,3 +52,4 @@ def plot(mean, thresholds, std=None, cfg=None):
     plt.text(peak, mean.mean(), f'threshold = {peak:.4g}')
 
     plt.show()
+    plt.savefig(fname)
