@@ -44,12 +44,14 @@ def main(fin, logdir):
 
     model.initialize()
     fs = gcsfs.GCSFileSystem()
-    with fs.open(os.path.join(logdir, "train_end_params.pt"), "rb") as f:
+    ofile = os.path.join(logdir, "train_end_params.pt")
+    print("Reading the file", ofile)
+    with fs.open(ofile, "rb") as f:
         model.load_params(f_params=f)
 
     th = np.arange(0.1, 0.9, 0.01)
     mean, std = model.thresholds(test, partial(dice, th=th))
-    plot(mean, thresholds=th, std=std)
+    plot(mean, thresholds=th)
 
 
 if __name__ == '__main__':
