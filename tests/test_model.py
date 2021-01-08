@@ -9,6 +9,4 @@ def test_model(fake_dataset):
 
     model = build_model(train_split=predefined_split(dataset))
     model.fit(dataset)
-
-    av, _ = model.thresholds(dataset)
-    assert av.shape[0] == len(dataset)
+    model.thresholds(dataset)
