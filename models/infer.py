@@ -9,6 +9,7 @@ import rasterio as rio
 from tqdm import tqdm
 from pathlib import Path
 
+DATA = "/kaggle/input/hubmap-kidney-segmentation/"
 MODELS = "/kaggle/input/hubmap-models/"
 
 try:
@@ -166,14 +167,7 @@ def predict_masks(df, trainpath, models=[],
     return names, preds
 
 
-def ensure_path(path, kernel_path="/kaggle/input/hubmap-kidney-segmentation/"):
-    fpath = Path(path)
-    if fpath.exists():
-        return fpath
-    return Path(kernel_path) / fpath.name
-
-
-def _path(path, kernel_path="/kaggle/input/hubmap-kidney-segmentation/"):
+def _path(path, kernel_path=DATA):
     fpath = Path(path)
     if fpath.exists():
         return fpath
@@ -181,12 +175,11 @@ def _path(path, kernel_path="/kaggle/input/hubmap-kidney-segmentation/"):
 
 
 def main():
-    df = pd.read_csv(ensure_path("data/sample_submission.csv"))
-
-    # Run the inference
-    trainpath = ensure_path("data/test")
-    models = [read_model(_path("weights/params.pt", MODELS))]
-    names, preds = predict_masks(df, trainpath, models=models)
+    df = pd.read_csv(_path("data/sample_submission.csv"))
+    models = [
+        read_model(_path("weights/params.pt", MODELS)),
+    ]
+    names, preds = predict_masks(df, _path("data/test"), models=models)
 
     # Dump the predictions
     df = pd.DataFrame({'id': names, 'predicted': preds})
