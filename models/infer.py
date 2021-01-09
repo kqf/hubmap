@@ -41,7 +41,7 @@ def rle_encode(img):
     This simplified method requires first and last pixel to be zero
     source: https://www.kaggle.com/bguberfain/memory-aware-rle-encoding
     """
-    pixels = img.T.flatten()
+    pixels = img.flatten()
 
     # This simplified method requires first and last pixel to be zero
     pixels[0] = 0
