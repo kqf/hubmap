@@ -10,14 +10,17 @@ from tqdm import tqdm
 from pathlib import Path
 
 MODELS = "/kaggle/input/hubmap-models/"
+
 try:
-    from models.modules import UNet
-    from models.encoding import encode
+    import models
 except ModuleNotFoundError:
     import subprocess
     subprocess.check_call([sys.executable, "-m", "pip", "install", MODELS])
+    del models
+finally:
     from models.modules import UNet
     from models.encoding import encode
+    from models.augmentations import transform
 
 
 def read_model(path):
@@ -47,7 +50,8 @@ class InferenceDataset(torch.utils.data.Dataset):
 
     identity = rio.Affine(1, 0, 0, 0, 1, 0)
 
-    def __init__(self, filename, sz, reduction):
+    def __init__(self, filename, sz, reduction,
+                 transform=transform(train=False)):
         self.data = rio.open(
             filename,
             transform=self.identity,
@@ -93,6 +97,7 @@ class InferenceDataset(torch.utils.data.Dataset):
         # check for empty imges
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         h, s, v = cv2.split(hsv)
+
         if self.is_saturated(img, s_th=40, p_th=200 * self.sz_raw // 256):
             # images with -1 will be skipped
             return img2tensor((img / 255.0 - self.mean) / self.std), -1
