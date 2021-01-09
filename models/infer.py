@@ -12,10 +12,12 @@ from pathlib import Path
 MODELS = "/kaggle/input/hubmap-models/"
 try:
     from models.modules import UNet
+    from models.encoding import encode
 except ModuleNotFoundError:
     import subprocess
     subprocess.check_call([sys.executable, "-m", "pip", "install", MODELS])
     from models.modules import UNet
+    from models.encoding import encode
 
 
 def read_model(path):
@@ -32,24 +34,6 @@ def img2tensor(img, dtype: np.dtype = np.float32):
         img = np.expand_dims(img, 2)
     img = np.transpose(img, (2, 0, 1))
     return torch.from_numpy(img.astype(dtype, copy=False))
-
-
-def rle_encode(img):
-    """
-    img: numpy array, 1 - mask, 0 - background
-    Returns run length as string formated
-    This simplified method requires first and last pixel to be zero
-    source: https://www.kaggle.com/bguberfain/memory-aware-rle-encoding
-    """
-    pixels = img.T.flatten()
-
-    # This simplified method requires first and last pixel to be zero
-    pixels[0] = 0
-    pixels[-1] = 0
-    runs = np.where(pixels[1:] != pixels[:-1])[0] + 2
-    runs[1::2] -= runs[::2]
-
-    return ' '.join(str(x) for x in runs)
 
 
 def nonpad(img, pad0, n0max, pad1, n1max, sz):
@@ -182,7 +166,7 @@ def predict_masks(df, trainpath, models=[],
         mask = nonpad(mask, ds.pad0, ds.n0max, ds.pad1, ds.n1max, ds.sz)
 
         names.append(sample)
-        preds.append(rle_encode(mask.numpy()))
+        preds.append(encode(mask.numpy()))
         del mask, ds, dl
         gc.collect()
     return names, preds
