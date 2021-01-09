@@ -9,11 +9,11 @@ import rasterio as rio
 from tqdm import tqdm
 from pathlib import Path
 
+MODELS = "/kaggle/input/hubmap-models/"
 try:
     from models.modules import UNet
 except ModuleNotFoundError:
     import subprocess
-    MODELS = "/kaggle/input/hubmap-models/"
     subprocess.check_call([sys.executable, "-m", "pip", "install", MODELS])
     from models.modules import UNet
 
@@ -161,7 +161,11 @@ def predict_masks(df, trainpath, models=[],
 
         # rasterio cannot be used with multiple workers
         dl = torch.utils.data.DataLoader(
-            ds, batch_size, num_workers=0, shuffle=False, pin_memory=True)
+            ds, batch_size,
+            num_workers=0,
+            shuffle=False,
+            pin_memory=True
+        )
 
         mp = InferenceModel(models, dl, reduction=reduction)
 
