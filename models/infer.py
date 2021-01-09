@@ -38,9 +38,6 @@ def nonpad(img, pad0, n0max, pad1, n1max, sz):
 
 
 class InferenceDataset(torch.utils.data.Dataset):
-    mean = np.array([0.654599, 0.483866, 0.694284])
-    std = np.array([0.151680, 0.235841, 0.131461])
-
     identity = rio.Affine(1, 0, 0, 0, 1, 0)
 
     def __init__(self, filename, sz, reduction,
