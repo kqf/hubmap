@@ -32,13 +32,6 @@ def read_model(path):
     return model
 
 
-def img2tensor(img, dtype: np.dtype = np.float32):
-    if img.ndim == 2:
-        img = np.expand_dims(img, 2)
-    img = np.transpose(img, (2, 0, 1))
-    return torch.from_numpy(img.astype(dtype, copy=False))
-
-
 def nonpad(img, pad0, n0max, pad1, n1max, sz):
     return img[pad0 // 2:-(pad0 - pad0 // 2) if pad0 > 0 else n0max * sz,
                pad1 // 2:-(pad1 - pad1 // 2) if pad1 > 0 else n1max * sz]
@@ -94,15 +87,14 @@ class InferenceDataset(torch.utils.data.Dataset):
             newshape = (self.sz // self.reduction, self.sz // self.reduction)
             img = cv2.resize(img, newshape, interpolation=cv2.INTER_AREA)
 
-        # check for empty imges
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        h, s, v = cv2.split(hsv)
+        # apply the same conversion to the tensors
+        tensor = self.transform(img)
 
         if self.is_saturated(img, s_th=40, p_th=200 * self.sz_raw // 256):
             # images with -1 will be skipped
-            return img2tensor((img / 255.0 - self.mean) / self.std), -1
+            return tensor, -1
 
-        return img2tensor((img / 255.0 - self.mean) / self.std), idx
+        return tensor, idx
 
     def is_saturated(self, img, s_th, p_th):
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
