@@ -10,12 +10,17 @@ from tqdm import tqdm
 from pathlib import Path
 
 MODELS = "/kaggle/input/hubmap-models/"
+
 try:
-    from models.modules import UNet
+    import models
 except ModuleNotFoundError:
     import subprocess
     subprocess.check_call([sys.executable, "-m", "pip", "install", MODELS])
+    del models
+finally:
     from models.modules import UNet
+    from models.encoding import encode
+    from models.augmentations import transform
 
 
 def read_model(path):
@@ -27,43 +32,16 @@ def read_model(path):
     return model
 
 
-def img2tensor(img, dtype: np.dtype = np.float32):
-    if img.ndim == 2:
-        img = np.expand_dims(img, 2)
-    img = np.transpose(img, (2, 0, 1))
-    return torch.from_numpy(img.astype(dtype, copy=False))
-
-
-def rle_encode(img):
-    """
-    img: numpy array, 1 - mask, 0 - background
-    Returns run length as string formated
-    This simplified method requires first and last pixel to be zero
-    source: https://www.kaggle.com/bguberfain/memory-aware-rle-encoding
-    """
-    pixels = img.T.flatten()
-
-    # This simplified method requires first and last pixel to be zero
-    pixels[0] = 0
-    pixels[-1] = 0
-    runs = np.where(pixels[1:] != pixels[:-1])[0] + 2
-    runs[1::2] -= runs[::2]
-
-    return ' '.join(str(x) for x in runs)
-
-
 def nonpad(img, pad0, n0max, pad1, n1max, sz):
     return img[pad0 // 2:-(pad0 - pad0 // 2) if pad0 > 0 else n0max * sz,
                pad1 // 2:-(pad1 - pad1 // 2) if pad1 > 0 else n1max * sz]
 
 
 class InferenceDataset(torch.utils.data.Dataset):
-    mean = np.array([0.654599, 0.483866, 0.694284])
-    std = np.array([0.151680, 0.235841, 0.131461])
-
     identity = rio.Affine(1, 0, 0, 0, 1, 0)
 
-    def __init__(self, filename, sz, reduction):
+    def __init__(self, filename, sz, reduction,
+                 transform=transform(train=False)):
         self.data = rio.open(
             filename,
             transform=self.identity,
@@ -106,14 +84,14 @@ class InferenceDataset(torch.utils.data.Dataset):
             newshape = (self.sz // self.reduction, self.sz // self.reduction)
             img = cv2.resize(img, newshape, interpolation=cv2.INTER_AREA)
 
-        # check for empty imges
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        h, s, v = cv2.split(hsv)
+        # apply the same conversion to the tensors
+        tensor = self.transform(img)
+
         if self.is_saturated(img, s_th=40, p_th=200 * self.sz_raw // 256):
             # images with -1 will be skipped
-            return img2tensor((img / 255.0 - self.mean) / self.std), -1
+            return tensor, -1
 
-        return img2tensor((img / 255.0 - self.mean) / self.std), idx
+        return tensor, idx
 
     def is_saturated(self, img, s_th, p_th):
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -182,7 +160,7 @@ def predict_masks(df, trainpath, models=[],
         mask = nonpad(mask, ds.pad0, ds.n0max, ds.pad1, ds.n1max, ds.sz)
 
         names.append(sample)
-        preds.append(rle_encode(mask.numpy()))
+        preds.append(encode(mask.numpy()))
         del mask, ds, dl
         gc.collect()
     return names, preds
