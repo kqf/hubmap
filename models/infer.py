@@ -105,22 +105,20 @@ class InferenceModel:
         self.models = models
         self.dl = dl
         self.reduction = reduction
+        self.flips = [[], [-1], [-2], [-2, -1]]
 
     def __call__(self, x, y):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        if ((y >= 0).sum() > 0):  # exclude empty images
+        if ((y >= 0).any() > 0):  # exclude empty images
             x = x[y >= 0].to(device)
             y = y[y >= 0]
-            py = None
-            for model in self.models:
-                p = model(x)
-                p = torch.sigmoid(p).detach()
-                if py is None:
-                    py = p
-                else:
-                    py += p
+            batch, _, h, w = x.shape
+            py, n_predictions = torch.zeros(batch, 1, h, w), 1
+            for i, preds in self.infer(x):
+                py += preds
+                n_predictions += i
 
-            py /= len(self.models)
+            py /= len(n_predictions)
             py = torch.nn.functional.upsample(
                 py, scale_factor=self.reduction, mode="bilinear")
             py = py.permute(0, 2, 3, 1).float().cpu()
@@ -128,6 +126,14 @@ class InferenceModel:
             batch_size = len(y)
             for i in range(batch_size):
                 yield py[i], y[i]
+
+    def infer(self, x):
+        batch, _, h, w = x.shape
+        for model in self.models:
+            for flip in self.flips:
+                with torch.no_grad():
+                    p = model(torch.flip(x, flip))
+                yield torch.sigmoid(torch.flip(p, flip)).detach()
 
 
 def predict_masks(df, trainpath, models=[],
