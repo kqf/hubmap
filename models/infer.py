@@ -8,6 +8,7 @@ import rasterio as rio
 
 from tqdm import tqdm
 from pathlib import Path
+from functools import partial
 
 DATA = "/kaggle/input/hubmap-kidney-segmentation/"
 MODELS = "/kaggle/input/hubmap-models/"
@@ -56,6 +57,7 @@ class InferenceDataset(torch.utils.data.Dataset):
         self.pad1 = (self.sz - self.shape[1] % self.sz) % self.sz
         self.n0max = (self.shape[0] + self.pad0) // self.sz
         self.n1max = (self.shape[1] + self.pad1) // self.sz
+        self.transform = transform
 
     def __len__(self):
         return self.n0max * self.n1max
@@ -86,7 +88,7 @@ class InferenceDataset(torch.utils.data.Dataset):
             img = cv2.resize(img, newshape, interpolation=cv2.INTER_AREA)
 
         # apply the same conversion to the tensors
-        tensor = self.transform(img)
+        tensor = self.transform(image=img)["image"]
 
         if self.is_saturated(img, s_th=40, p_th=200 * self.sz_raw // 256):
             # images with -1 will be skipped
@@ -105,20 +107,26 @@ class InferenceModel:
         self.models = models
         self.dl = dl
         self.reduction = reduction
-        self.flips = [[], [-1], [-2], [-2, -1]]
+        self.flips = [
+            lambda x: x,
+            partial(torch.flip, dims=[-1]),
+            partial(torch.flip, dims=[-2]),
+            partial(torch.flip, dims=[-2, -1]),
+        ]
 
     def __call__(self, x, y):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         if ((y >= 0).any() > 0):  # exclude empty images
             x = x[y >= 0].to(device)
             y = y[y >= 0]
+
             batch, _, h, w = x.shape
-            py, n_predictions = torch.zeros(batch, 1, h, w), 1
-            for i, preds in self.infer(x):
+            py, n_predictions = torch.zeros(batch, 1, h, w, device=device), 1
+            for i, preds in enumerate(self.infer(x)):
                 py += preds
                 n_predictions += i
 
-            py /= len(n_predictions)
+            py /= n_predictions
             py = torch.nn.functional.upsample(
                 py, scale_factor=self.reduction, mode="bilinear")
             py = py.permute(0, 2, 3, 1).float().cpu()
@@ -132,8 +140,8 @@ class InferenceModel:
         for model in self.models:
             for flip in self.flips:
                 with torch.no_grad():
-                    p = model(torch.flip(x, flip))
-                yield torch.sigmoid(torch.flip(p, flip)).detach()
+                    p = model(flip(x))
+                yield torch.sigmoid(flip(p)).detach()
 
 
 def predict_masks(df, trainpath, models=[],
