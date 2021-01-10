@@ -9,7 +9,7 @@ from click import Path as cpath
 
 from tqdm import tqdm
 
-from models.encoding import rl_decode
+from models.encoding import decode
 
 
 def tiff_read(filename):
@@ -102,7 +102,7 @@ def main(codes, fin, fout):
 
         # Decode -> [h, w]
         shape = image.shape[:2]
-        mask = rl_decode(encoding, shape[::-1])
+        mask = decode(encoding, shape[::-1])
 
         samples = tile(image, interp=cv2.INTER_AREA)
         masks = tile(mask, interp=cv2.INTER_NEAREST)
