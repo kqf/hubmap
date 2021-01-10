@@ -8,7 +8,9 @@ import rasterio as rio
 
 from tqdm import tqdm
 from pathlib import Path
+from functools import partial
 
+DATA = "/kaggle/input/hubmap-kidney-segmentation/"
 MODELS = "/kaggle/input/hubmap-models/"
 
 try:
@@ -55,6 +57,7 @@ class InferenceDataset(torch.utils.data.Dataset):
         self.pad1 = (self.sz - self.shape[1] % self.sz) % self.sz
         self.n0max = (self.shape[0] + self.pad0) // self.sz
         self.n1max = (self.shape[1] + self.pad1) // self.sz
+        self.transform = transform
 
     def __len__(self):
         return self.n0max * self.n1max
@@ -85,7 +88,7 @@ class InferenceDataset(torch.utils.data.Dataset):
             img = cv2.resize(img, newshape, interpolation=cv2.INTER_AREA)
 
         # apply the same conversion to the tensors
-        tensor = self.transform(img)
+        tensor = self.transform(image=img)["image"]
 
         if self.is_saturated(img, s_th=40, p_th=200 * self.sz_raw // 256):
             # images with -1 will be skipped
@@ -104,22 +107,26 @@ class InferenceModel:
         self.models = models
         self.dl = dl
         self.reduction = reduction
+        self.flips = [
+            lambda x: x,
+            partial(torch.flip, dims=[-1]),
+            partial(torch.flip, dims=[-2]),
+            partial(torch.flip, dims=[-2, -1]),
+        ]
 
     def __call__(self, x, y):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        if ((y >= 0).sum() > 0):  # exclude empty images
+        if ((y >= 0).any() > 0):  # exclude empty images
             x = x[y >= 0].to(device)
             y = y[y >= 0]
-            py = None
-            for model in self.models:
-                p = model(x)
-                p = torch.sigmoid(p).detach()
-                if py is None:
-                    py = p
-                else:
-                    py += p
 
-            py /= len(self.models)
+            batch, _, h, w = x.shape
+            py, n_predictions = torch.zeros(batch, 1, h, w, device=device), 1
+            for i, preds in enumerate(self.infer(x)):
+                py += preds
+                n_predictions += i
+
+            py /= n_predictions
             py = torch.nn.functional.upsample(
                 py, scale_factor=self.reduction, mode="bilinear")
             py = py.permute(0, 2, 3, 1).float().cpu()
@@ -127,6 +134,14 @@ class InferenceModel:
             batch_size = len(y)
             for i in range(batch_size):
                 yield py[i], y[i]
+
+    def infer(self, x):
+        batch, _, h, w = x.shape
+        for model in self.models:
+            for flip in self.flips:
+                with torch.no_grad():
+                    p = model(flip(x))
+                yield torch.sigmoid(flip(p)).detach()
 
 
 def predict_masks(df, trainpath, models=[],
@@ -166,14 +181,7 @@ def predict_masks(df, trainpath, models=[],
     return names, preds
 
 
-def ensure_path(path, kernel_path="/kaggle/input/hubmap-kidney-segmentation/"):
-    fpath = Path(path)
-    if fpath.exists():
-        return fpath
-    return Path(kernel_path) / fpath.name
-
-
-def _path(path, kernel_path="/kaggle/input/hubmap-kidney-segmentation/"):
+def _path(path, kernel_path=DATA):
     fpath = Path(path)
     if fpath.exists():
         return fpath
@@ -181,12 +189,11 @@ def _path(path, kernel_path="/kaggle/input/hubmap-kidney-segmentation/"):
 
 
 def main():
-    df = pd.read_csv(ensure_path("data/sample_submission.csv"))
-
-    # Run the inference
-    trainpath = ensure_path("data/test")
-    models = [read_model(_path("weights/params.pt", MODELS))]
-    names, preds = predict_masks(df, trainpath, models=models)
+    df = pd.read_csv(_path("data/sample_submission.csv"))
+    models = [
+        read_model(_path("weights/params.pt", MODELS)),
+    ]
+    names, preds = predict_masks(df, _path("data/test"), models=models)
 
     # Dump the predictions
     df = pd.DataFrame({'id': names, 'predicted': preds})
