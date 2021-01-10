@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def rl_decode(code, shape):
+def decode(code, shape):
     """
     Decode the run-lenght encoded string into an image of the given shape.
     Parameters

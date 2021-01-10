@@ -18,8 +18,8 @@ try:
 except ModuleNotFoundError:
     import subprocess
     subprocess.check_call([sys.executable, "-m", "pip", "install", MODELS])
-    del models
 finally:
+    del models
     from models.modules import UNet
     from models.encoding import encode
     from models.augmentations import transform
