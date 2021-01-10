@@ -25,3 +25,4 @@ thresholds.png
 
 # Tensorboard logs
 events.out.*
+.tmp
