@@ -28,7 +28,7 @@ def score(net, ds, y):
     return iou_approx(y, predicted_logit_masks)
 
 
-def build_model(max_epochs=2, logdir=".", train_split=None):
+def build_model(max_epochs=2, logdir=".tmp/", train_split=None):
     scheduler = skorch.callbacks.LRScheduler(
         policy=torch.optim.lr_scheduler.CyclicLR,
         base_lr=0.002,
