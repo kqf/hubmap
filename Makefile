@@ -3,7 +3,8 @@ logdir = $(TENSORBOARD_DIR)/$(message)
 
 
 data/train/splits: data/train/preprocessed
-	python models/split.py --fin $^
+	python models/split.py --fin $^ --fout data/train
+
 
 develop: data/train/preprocessed/
 	python models/main.py --fin $^ --logdir=$(logdir)
