@@ -27,10 +27,9 @@ torch.backends.cudnn.deterministic = True
 
 @click.command()
 @click.option("--fin", type=cpath(exists=True))
-@click.option("--fold", type=cpath(exists=True))
 @click.option("--logdir", type=str)
-def main(fin, fold, logdir):
-    with open(fold) as f:
+def main(fin, logdir):
+    with open(fin) as f:
         folders = json.read(f)
 
     train = RawDataset(folders["train"], transform=transform(train=True))
