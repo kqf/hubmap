@@ -30,7 +30,7 @@ torch.backends.cudnn.deterministic = True
 @click.option("--logdir", type=str)
 def main(fin, logdir):
     with open(fin) as f:
-        folders = json.read(f)
+        folders = json.load(f)
 
     train = RawDataset(folders["train"], transform=transform(train=True))
     test = RawDataset(folders["test"], transform=transform(train=False))
