@@ -10,7 +10,7 @@ all: weights/fold0.pt \
 weights/fold%.pt: foldname = $(basename $(@F))
 weights/fold%.pt: logfold = $(logdir)-$(foldname)
 weights/fold%.pt: data/train/fold%.json
-	python models/train.py --fin $< --fout $(@D)
+	python models/train.py --fin $< --logdir $(logfold)
 	gsutil -m cp thresholds.png $(logfold)
 	gsutil -m cp $(logfold)/train_end_params.pt $@
 
