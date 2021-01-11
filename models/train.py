@@ -4,9 +4,7 @@ import torch
 import random
 import numpy as np
 
-from pathlib import Path
 from click import Path as cpath
-from sklearn.model_selection import train_test_split
 from skorch.helper import predefined_split
 from functools import partial
 
