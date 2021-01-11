@@ -1,7 +1,18 @@
 competition = hubmap-kidney-segmentation
 logdir = $(TENSORBOARD_DIR)/$(message)
 
-all: data/train/fold1.json
+all: weights/fold0.pt \
+	 weights/fold1.pt \
+	 weights/fold2.pt \
+	 weights/fold3.pt \
+	 weights/fold4.pt
+
+weights/fold%.pt: foldname = $(basename $(@F))
+weights/fold%.pt: logfold = $(logdir)-$(foldname)
+weights/fold%.pt: data/train/fold%.json
+	python models/train.py --fin $< --logdir $(logfold)
+	gsutil -m cp thresholds.png $(logfold)
+	gsutil -m cp $(logfold)/train_end_params.pt $@
 
 data/train/fold%.json: data/train/preprocessed
 	python models/split.py --fin $^ --fout $(@D)

@@ -1,5 +1,6 @@
 import cv2
 import torch
+import pathlib
 from torch.utils.data import Dataset
 
 
@@ -20,7 +21,7 @@ class RawDataset(Dataset):
         return len(self.samples)
 
     def __getitem__(self, idx):
-        sample = self.samples[idx]
+        sample = pathlib.Path(self.samples[idx])
 
         # By default OpenCV uses BGR color space for color images,
         # so we need to convert the image to RGB color space.
