@@ -1,9 +1,8 @@
 competition = hubmap-kidney-segmentation
 logdir = $(TENSORBOARD_DIR)/$(message)
 
-
-data/train/splits: data/train/preprocessed
-	python models/split.py --fin $^ --fout data/train
+data/train/fold%.json: data/train/preprocessed
+	python models/split.py --fin $^ --fout $@
 
 
 develop: data/train/preprocessed/
@@ -58,3 +57,4 @@ tolocal:
 
 
 .PHONY: tolocal infer develop push-data push-kernels
+.PRECIOUS: data/train/fold%.json
