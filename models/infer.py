@@ -15,11 +15,11 @@ MODELS = "/kaggle/input/hubmap-models/"
 
 try:
     import models
+    del models
 except ModuleNotFoundError:
     import subprocess
     subprocess.check_call([sys.executable, "-m", "pip", "install", MODELS])
 finally:
-    del models
     from models.modules import UNet
     from models.encoding import encode
     from models.augmentations import transform
