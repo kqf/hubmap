@@ -185,7 +185,13 @@ def _path(path, kernel_path=DATA):
     fpath = Path(path)
     if fpath.exists():
         return fpath
-    return Path(kernel_path) / fpath
+
+    local = Path(kernel_path) / fpath
+    if local.exists():
+        return local
+
+    kernel = Path(kernel_path) / fpath.name
+    return kernel
 
 
 def main():
