@@ -15,11 +15,11 @@ MODELS = "/kaggle/input/hubmap-models/"
 
 try:
     import models
+    del models
 except ModuleNotFoundError:
     import subprocess
     subprocess.check_call([sys.executable, "-m", "pip", "install", MODELS])
 finally:
-    del models
     from models.modules import UNet
     from models.encoding import encode
     from models.augmentations import transform
@@ -191,7 +191,8 @@ def _path(path, kernel_path=DATA):
 def main():
     df = pd.read_csv(_path("data/sample_submission.csv"))
     models = [
-        read_model(_path("weights/params.pt", MODELS)),
+        read_model(_path(f"weights/fold{i}.pt", MODELS))
+        for i in range(5)
     ]
     names, preds = predict_masks(df, _path("data/test"), models=models)
 
