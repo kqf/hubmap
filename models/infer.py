@@ -191,7 +191,8 @@ def _path(path, kernel_path=DATA):
 def main():
     df = pd.read_csv(_path("data/sample_submission.csv"))
     models = [
-        read_model(_path("weights/params.pt", MODELS)),
+        read_model(_path(f"weights/fold{i}.pt", MODELS))
+        for i in range(5)
     ]
     names, preds = predict_masks(df, _path("data/test"), models=models)
 
