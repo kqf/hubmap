@@ -127,8 +127,12 @@ class InferenceModel:
                 n_predictions += i
 
             py /= n_predictions
-            py = torch.nn.functional.upsample(
-                py, scale_factor=self.reduction, mode="bilinear")
+            py = torch.nn.functional.interpolate(
+                py,
+                scale_factor=self.reduction,
+                mode="bilinear",
+                align_corners=False
+            )
             py = py.permute(0, 2, 3, 1).float().cpu()
 
             batch_size = len(y)
