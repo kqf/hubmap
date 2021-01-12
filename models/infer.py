@@ -138,6 +138,7 @@ class InferenceModel:
     def infer(self, x):
         batch, _, h, w = x.shape
         for model in self.models:
+            model.eval()
             for flip in self.flips:
                 with torch.no_grad():
                     p = model(flip(x))
