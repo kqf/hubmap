@@ -124,7 +124,7 @@ class InferenceModel:
             py, n_predictions = torch.zeros(batch, 1, h, w, device=device), 1
             for i, preds in enumerate(self.infer(x)):
                 py += preds
-                n_predictions = i
+                n_predictions = i + 1
 
             py /= n_predictions
             py = torch.nn.functional.interpolate(
