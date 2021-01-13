@@ -109,9 +109,9 @@ class InferenceModel:
         self.reduction = reduction
         self.flips = [
             lambda x: x,
-            # partial(torch.flip, dims=[-1]),
-            # partial(torch.flip, dims=[-2]),
-            # partial(torch.flip, dims=[-2, -1]),
+            partial(torch.flip, dims=[-1]),
+            partial(torch.flip, dims=[-2]),
+            partial(torch.flip, dims=[-2, -1]),
         ]
 
     def __call__(self, x, y):
