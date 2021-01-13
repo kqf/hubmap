@@ -109,9 +109,9 @@ class InferenceModel:
         self.reduction = reduction
         self.flips = [
             lambda x: x,
-            partial(torch.flip, dims=[-1]),
-            partial(torch.flip, dims=[-2]),
-            partial(torch.flip, dims=[-2, -1]),
+            # partial(torch.flip, dims=[-1]),
+            # partial(torch.flip, dims=[-2]),
+            # partial(torch.flip, dims=[-2, -1]),
         ]
 
     def __call__(self, x, y):
@@ -200,9 +200,12 @@ def _path(path, kernel_path=DATA):
 
 def main():
     df = pd.read_csv(_path("data/sample_submission.csv"))
+    # models = [
+    #     read_model(_path(f"weights/fold{i}.pt", MODELS))
+    #     for i in range(5)
+    # ]
     models = [
-        read_model(_path(f"weights/fold{i}.pt", MODELS))
-        for i in range(5)
+        read_model(_path(f"weights/total.pt", MODELS))
     ]
     names, preds = predict_masks(df, _path("data/test"), models=models)
 
