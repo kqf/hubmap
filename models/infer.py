@@ -124,7 +124,7 @@ class InferenceModel:
             py, n_predictions = torch.zeros(batch, 1, h, w, device=device), 1
             for i, preds in enumerate(self.infer(x)):
                 py += preds
-                n_predictions += i
+                n_predictions = i
 
             py /= n_predictions
             py = torch.nn.functional.interpolate(
@@ -200,12 +200,9 @@ def _path(path, kernel_path=DATA):
 
 def main():
     df = pd.read_csv(_path("data/sample_submission.csv"))
-    # models = [
-    #     read_model(_path(f"weights/fold{i}.pt", MODELS))
-    #     for i in range(5)
-    # ]
     models = [
-        read_model(_path(f"weights/total.pt", MODELS))
+        read_model(_path(f"weights/fold{i}.pt", MODELS))
+        for i in range(5)
     ]
     names, preds = predict_masks(df, _path("data/test"), models=models)
 
