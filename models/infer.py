@@ -151,7 +151,7 @@ class InferenceModel:
 
 def predict_masks(df, trainpath, models=[],
                   sz=256, reduction=4,
-                  pthreshold=0.41, batch_size=32):
+                  pthreshold=0.10, batch_size=32):
     preds, names = [], []
     for idx, (sample, *_) in tqdm(df.iterrows(), total=len(df)):
         tiff = (trainpath / sample).with_suffix(".tiff")
