@@ -142,6 +142,7 @@ class InferenceModel:
     def infer(self, x):
         batch, _, h, w = x.shape
         for model in self.models:
+            model.eval()
             for flip in self.flips:
                 with torch.no_grad():
                     logits = model(flip(x))
@@ -150,7 +151,7 @@ class InferenceModel:
 
 def predict_masks(df, trainpath, models=[],
                   sz=256, reduction=4,
-                  pthreshold=0.22, batch_size=32):
+                  pthreshold=0.41, batch_size=32):
     preds, names = [], []
     for idx, (sample, *_) in tqdm(df.iterrows(), total=len(df)):
         tiff = (trainpath / sample).with_suffix(".tiff")
