@@ -153,8 +153,8 @@ def predict_masks(
     df,
     trainpath,
     models=[],
-    sz=512,
-    reduction=2,
+    sz=256,
+    reduction=4,
     pthreshold=0.40,
     batch_size=32
 ):
