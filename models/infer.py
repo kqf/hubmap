@@ -90,7 +90,7 @@ class InferenceDataset(torch.utils.data.Dataset):
         # apply the same conversion to the tensors
         tensor = self.transform(image=img)["image"]
 
-        if self.is_saturated(img, s_th=40, p_th=200 * self.sz_raw // 256):
+        if self.is_saturated(img, s_th=40, p_th=200 * self.sz_raw // 512):
             # images with -1 will be skipped
             return tensor, -1
 
