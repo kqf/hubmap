@@ -34,7 +34,7 @@ def main(fin, logdir):
     test = RawDataset(ftest, transform=transform(train=False))
 
     model = build_model(
-        max_epochs=50,
+        max_epochs=60,
         logdir=logdir,
         train_split=predefined_split(test),
     )
