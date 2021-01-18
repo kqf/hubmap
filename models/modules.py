@@ -54,3 +54,66 @@ class UNet(torch.nn.Module):
         dec1 = self.dec1(torch.cat([dec2, conv1], 1))
 
         return self.final(dec1)
+
+
+def get_encoder(self, encoder, layer):
+    if layer == 0:
+        return
+    elif layer == 2:
+        return encoder.layer2
+    elif layer == 3:
+        return encoder.layer3
+    elif layer == 4:
+        return encoder.layer4
+
+
+class ResUNet(torch.nn.Module):
+    def __init__(self, pretrained=False):
+        super().__init__()
+        encoder = models.resnet34(pretrained=False)
+        self.conv1 = torch.nn.Sequential(
+            encoder.conv1,
+            encoder.bn1,
+            encoder.relu
+        )
+        self.conv2 = torch.nn.Sequential(
+            encoder.maxpool,
+            encoder.layer1
+        )
+        self.conv3 = encoder.layer2
+        self.conv4 = encoder.layer3
+        self.conv5 = encoder.layer4
+
+        # self.center = torch.nn.Sequential(
+        #     encoder[43],  # MaxPool
+        #     make_decoder_block(512, 512, 256)
+        # )
+
+        self.center = torch.nn.Identity()
+
+        self.dec5 = make_decoder_block(256 + 512, 512, 256)
+        self.dec4 = make_decoder_block(256 + 512, 512, 256)
+        self.dec3 = make_decoder_block(256 + 256, 256, 64)
+        self.dec2 = make_decoder_block(64 + 128, 128, 32)
+        self.dec1 = torch.nn.Sequential(
+            torch.nn.Conv2d(32 + 64, 32, 3, padding=1),
+            torch.nn.ReLU(inplace=True)
+        )
+        self.final = torch.nn.Conv2d(32, 1, kernel_size=1)
+
+    def forward(self, x):
+        conv1 = self.conv1(x)
+        conv2 = self.conv2(conv1)
+        conv3 = self.conv3(conv2)
+        conv4 = self.conv4(conv3)
+        conv5 = self.conv5(conv4)
+
+        center = self.center(conv5)
+
+        dec5 = self.dec5(torch.cat([center, conv5], 1))
+        dec4 = self.dec4(torch.cat([dec5, conv4], 1))
+        dec3 = self.dec3(torch.cat([dec4, conv3], 1))
+        dec2 = self.dec2(torch.cat([dec3, conv2], 1))
+        dec1 = self.dec1(torch.cat([dec2, conv1], 1))
+
+        return self.final(dec1)
