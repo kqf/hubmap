@@ -3,7 +3,7 @@ import pytest
 
 import torch
 
-from models.model import UNet
+from models.modules import UNet, ResUNet
 
 
 @pytest.fixture(scope="module")
@@ -13,6 +13,7 @@ def batch(batch_size=128, n_channels=3, imsize=32):
 
 @pytest.mark.parametrize("build_model", [
     UNet,
+    # ResUNet,
 ])
 def test_model(build_model, batch):
     batch_size, n_channels, imsize, imsize = batch.shape
