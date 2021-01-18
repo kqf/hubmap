@@ -84,10 +84,10 @@ class ResUNet(torch.nn.Module):
         self.conv4 = encoder.layer3
         self.conv5 = encoder.layer4
 
-        # self.center = torch.nn.Sequential(
-        #     encoder[43],  # MaxPool
-        #     make_decoder_block(512, 512, 256)
-        # )
+        self.center = torch.nn.Sequential(
+            torch.nn.MaxPool2d(2),  # MaxPool
+            make_decoder_block(512, 512, 256)
+        )
 
         self.center = torch.nn.Identity()
 
@@ -111,6 +111,7 @@ class ResUNet(torch.nn.Module):
         center = self.center(conv5)
 
         dec5 = self.dec5(torch.cat([center, conv5], 1))
+
         dec4 = self.dec4(torch.cat([dec5, conv4], 1))
         dec3 = self.dec3(torch.cat([dec4, conv3], 1))
         dec2 = self.dec2(torch.cat([dec3, conv2], 1))
