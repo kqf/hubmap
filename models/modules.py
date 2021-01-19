@@ -53,7 +53,7 @@ class UNet(torch.nn.Module):
         dec2 = self.dec2(torch.cat([dec3, conv2], 1))
         dec1 = self.dec1(torch.cat([dec2, conv1], 1))
 
-        return self.fnal(dec1)
+        return self.final(dec1)
 
 
 class ResUNet(torch.nn.Module):
