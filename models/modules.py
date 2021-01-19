@@ -46,7 +46,6 @@ class UNet(torch.nn.Module):
         conv5 = self.conv5(conv4)
 
         center = self.center(conv5)
-        import ipdb; ipdb.set_trace(); import IPython; IPython.embed() # noqa
 
         dec5 = self.dec5(torch.cat([center, conv5], 1))
         dec4 = self.dec4(torch.cat([dec5, conv4], 1))
@@ -54,7 +53,7 @@ class UNet(torch.nn.Module):
         dec2 = self.dec2(torch.cat([dec3, conv2], 1))
         dec1 = self.dec1(torch.cat([dec2, conv1], 1))
 
-        return self.final(dec1)
+        return self.fnal(dec1)
 
 
 class ResUNet(torch.nn.Module):
