@@ -6,7 +6,7 @@ from tensorboardX import SummaryWriter
 from models.metrics import iou_approx
 from models.callbacks import TensorBoardWithImages
 from models.segnet import SegNet
-from models.modules import UNet
+from models.modules import ResUNet
 
 
 class BCEWithLogitsLossPadding(torch.nn.Module):
@@ -39,7 +39,7 @@ def build_model(max_epochs=2, logdir=".tmp/", train_split=None):
     )
 
     model = SegNet(
-        UNet,
+        ResUNet,
         module__pretrained=False,
         criterion=BCEWithLogitsLossPadding,
         criterion__padding=0,
