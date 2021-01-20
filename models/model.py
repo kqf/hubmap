@@ -28,6 +28,13 @@ def score(net, ds, y):
     return iou_approx(y, predicted_logit_masks)
 
 
+def init(w):
+    if w.dim() < 2:
+        return w
+
+    return torch.nn.init.xavier_uniform_(w)
+
+
 def build_model(max_epochs=2, logdir=".tmp/", train_split=None):
     # scheduler = skorch.callbacks.LRScheduler(
     #     policy=torch.optim.lr_scheduler.CyclicLR,
@@ -60,6 +67,7 @@ def build_model(max_epochs=2, logdir=".tmp/", train_split=None):
             skorch.callbacks.Checkpoint(dirname=logdir),
             skorch.callbacks.TrainEndCheckpoint(dirname=logdir),
             # scheduler,
+            skorch.callbacks.Initializer("dec*", init),
         ],
         device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
     )
