@@ -59,7 +59,7 @@ class UNet(torch.nn.Module):
 class ResUNet(torch.nn.Module):
     def __init__(self, pretrained=False):
         super().__init__()
-        encoder = models.resnet34(pretrained=False)
+        encoder = models.resnet34(pretrained=pretrained)
         self.conv1 = torch.nn.Sequential(
             encoder.conv1,
             encoder.bn1,
