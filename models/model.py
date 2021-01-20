@@ -40,7 +40,7 @@ def build_model(max_epochs=2, logdir=".tmp/", train_split=None):
 
     model = SegNet(
         ResUNet,
-        module__pretrained=False,
+        module__pretrained=True,
         criterion=BCEWithLogitsLossPadding,
         criterion__padding=0,
         batch_size=32,
