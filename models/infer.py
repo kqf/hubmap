@@ -155,7 +155,7 @@ def predict_masks(
     models=[],
     sz=256,
     reduction=4,
-    pthreshold=0.45,
+    pthreshold=0.41,
     batch_size=32
 ):
     preds, names = [], []
