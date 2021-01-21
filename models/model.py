@@ -7,20 +7,7 @@ from models.metrics import iou_approx
 from models.callbacks import TensorBoardWithImages
 from models.segnet import SegNet
 from models.modules import ResUNet
-
-
-class BCEWithLogitsLossPadding(torch.nn.Module):
-    def __init__(self, padding=0):
-        super().__init__()
-        self.padding = padding
-
-    def forward(self, input, target):
-        x = input.squeeze_(dim=1)
-        _, h, w = x.shape
-        x = x[:, self.padding:h - self.padding, self.padding:w - self.padding]
-        y = target.squeeze_(dim=1).float()
-        y = y[:, self.padding:h - self.padding, self.padding:w - self.padding]
-        return torch.nn.functional.binary_cross_entropy_with_logits(x, y)
+from models.losses import BCEWithLogitsLossPadding
 
 
 def score(net, ds, y):
@@ -31,7 +18,6 @@ def score(net, ds, y):
 def init(w):
     if w.dim() < 2:
         return w
-
     return torch.nn.init.xavier_uniform_(w)
 
 
