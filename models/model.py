@@ -52,7 +52,7 @@ def build_model(max_epochs=2, logdir=".tmp/", train_split=None):
             skorch.callbacks.Checkpoint(dirname=logdir),
             skorch.callbacks.TrainEndCheckpoint(dirname=logdir),
             scheduler,
-            skorch.callbacks.Initializer("dec*", init),
+            skorch.callbacks.Initializer("*", init),
         ],
         device=torch.device("cuda" if torch.cuda.is_available() else "cpu"),
     )
