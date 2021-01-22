@@ -24,9 +24,9 @@ def init(w):
 def build_model(max_epochs=2, logdir=".tmp/", train_split=None):
     scheduler = skorch.callbacks.LRScheduler(
         policy=torch.optim.lr_scheduler.CyclicLR,
-        base_lr=0.0002,
+        base_lr=0.00001,
         max_lr=0.4,
-        step_size_up=2900,
+        step_size_up=3900,
         step_size_down=2900,
         step_every='batch',
     )
